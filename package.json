@@ -1,0 +1,12 @@
+{
+  "name": "cvpalmanord-static-clone",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Clon estatico de cvpalmanord.es listo para Railway",
+  "scripts": {
+    "start": "sh -c 'serve site -l ${PORT:-3000}'"
+  },
+  "dependencies": {
+    "serve": "latest"
+  }
+}
