@@ -33,7 +33,8 @@ const SMTP_PORT = Number.parseInt(process.env.SMTP_PORT || "465", 10) || 465;
 const SMTP_USER = (
   process.env.SMTP_USER || "cvpalmanord@cvpalmanord.es"
 ).trim();
-const SMTP_PASS = process.env.SMTP_PASS || "";
+// Trim evita fallos por espacios/saltos al pegar la contraseña en Railway.
+const SMTP_PASS = String(process.env.SMTP_PASS || "").trim();
 const SMTP_SECURE =
   String(process.env.SMTP_SECURE || (SMTP_PORT === 465 ? "true" : "false"))
     .trim()
@@ -95,28 +96,122 @@ const SERVE_CONFIG = {
   ]
 };
 
-var mailTransport = null;
+var mailTransportPrimary = null;
+var mailTransportFallback = null;
+var lastSmtpErrorCode = null;
 
 function isSmtpConfigured() {
   return !!(SMTP_HOST && SMTP_USER && SMTP_PASS && MAIL_TO && MAIL_FROM);
 }
 
-function getMailTransport() {
-  if (!isSmtpConfigured()) return null;
-  if (mailTransport) return mailTransport;
-  mailTransport = nodemailer.createTransport({
+function createSmtpTransport(port, secure) {
+  return nodemailer.createTransport({
     host: SMTP_HOST,
-    port: SMTP_PORT,
-    secure: SMTP_SECURE,
+    port: port,
+    secure: secure,
+    requireTLS: !secure,
     auth: {
       user: SMTP_USER,
       pass: SMTP_PASS
     },
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000
+    authMethod: "LOGIN",
+    tls: {
+      minVersion: "TLSv1.2",
+      servername: SMTP_HOST
+    },
+    connectionTimeout: 12000,
+    greetingTimeout: 12000,
+    socketTimeout: 20000
   });
-  return mailTransport;
+}
+
+function getPrimaryTransport() {
+  if (!isSmtpConfigured()) return null;
+  if (!mailTransportPrimary) {
+    mailTransportPrimary = createSmtpTransport(SMTP_PORT, SMTP_SECURE);
+  }
+  return mailTransportPrimary;
+}
+
+function getFallbackTransport() {
+  if (!isSmtpConfigured()) return null;
+  // Si el primario ya es 587, no hay fallback distinto.
+  if (SMTP_PORT === 587 && !SMTP_SECURE) return null;
+  if (!mailTransportFallback) {
+    mailTransportFallback = createSmtpTransport(587, false);
+  }
+  return mailTransportFallback;
+}
+
+function classifySmtpError(err) {
+  var code = String((err && (err.code || err.responseCode)) || "").toUpperCase();
+  var msg = String((err && err.message) || "").toLowerCase();
+  if (
+    code === "EAUTH" ||
+    code === "535" ||
+    code === "534" ||
+    msg.indexOf("invalid login") !== -1 ||
+    msg.indexOf("authentication failed") !== -1 ||
+    msg.indexOf("username and password not accepted") !== -1
+  ) {
+    return "smtp_auth_failed";
+  }
+  if (
+    code === "ESOCKET" ||
+    code === "ECONNECTION" ||
+    code === "ETIMEDOUT" ||
+    code === "ECONNREFUSED" ||
+    code === "EENVELOPE" ||
+    msg.indexOf("connect") !== -1 ||
+    msg.indexOf("timeout") !== -1
+  ) {
+    return "smtp_unreachable";
+  }
+  return "mail_failed";
+}
+
+async function sendMailReliable(mailOptions) {
+  var primary = getPrimaryTransport();
+  if (!primary) {
+    return { ok: false, status: 503, error: "form_not_configured" };
+  }
+
+  try {
+    await primary.sendMail(mailOptions);
+    lastSmtpErrorCode = null;
+    return { ok: true };
+  } catch (firstErr) {
+    lastSmtpErrorCode = classifySmtpError(firstErr);
+    console.error(
+      "SMTP primary failed (" +
+        SMTP_HOST +
+        ":" +
+        SMTP_PORT +
+        "):",
+      firstErr && firstErr.code ? firstErr.code : "",
+      firstErr && firstErr.message ? firstErr.message : firstErr
+    );
+
+    var fallback = getFallbackTransport();
+    if (!fallback) {
+      return { ok: false, status: 502, error: lastSmtpErrorCode };
+    }
+
+    try {
+      await fallback.sendMail(mailOptions);
+      lastSmtpErrorCode = null;
+      console.warn("SMTP fallback 587 STARTTLS succeeded after primary failure.");
+      return { ok: true };
+    } catch (secondErr) {
+      lastSmtpErrorCode = classifySmtpError(secondErr);
+      console.error(
+        "SMTP fallback failed (587):",
+        secondErr && secondErr.code ? secondErr.code : "",
+        secondErr && secondErr.message ? secondErr.message : secondErr
+      );
+      return { ok: false, status: 502, error: lastSmtpErrorCode };
+    }
+  }
 }
 
 function applySecurityHeaders(res) {
@@ -293,45 +388,46 @@ function buildClientHtml(payload) {
 }
 
 async function sendContactEmail(payload) {
-  var transport = getMailTransport();
-  if (!transport) {
+  if (!isSmtpConfigured()) {
     return { ok: false, status: 503, error: "form_not_configured" };
   }
 
   var fromHeader = '"' + MAIL_FROM_NAME.replace(/"/g, "") + '" <' + MAIL_FROM + ">";
   var subject = "[Presupuesto web] " + payload.name;
 
-  try {
-    await transport.sendMail({
-      from: fromHeader,
-      to: MAIL_TO,
-      replyTo: payload.email,
-      subject: subject,
-      text: buildStaffText(payload)
-    });
-  } catch (e) {
-    console.error("SMTP staff mail failed:", e && e.message ? e.message : e);
-    return { ok: false, status: 502, error: "mail_failed" };
+  var staffResult = await sendMailReliable({
+    from: fromHeader,
+    to: MAIL_TO,
+    replyTo: payload.email,
+    subject: subject,
+    text: buildStaffText(payload)
+  });
+
+  if (!staffResult.ok) {
+    return {
+      ok: false,
+      status: staffResult.status || 502,
+      error: staffResult.error || "mail_failed"
+    };
   }
 
   if (SEND_CLIENT_COPY) {
-    try {
-      await transport.sendMail({
-        from: fromHeader,
-        to: payload.email,
-        replyTo: MAIL_TO,
-        subject: "Gracias por contactar - Clinica Veterinaria Palmanord",
-        html: buildClientHtml(payload),
-        text:
-          "Gracias, " +
-          payload.name +
-          ".\n\nHemos recibido tu solicitud y te contactaremos muy pronto.\nUrgencias: +34 655 214 080\n"
-      });
-    } catch (e) {
+    var clientResult = await sendMailReliable({
+      from: fromHeader,
+      to: payload.email,
+      replyTo: MAIL_TO,
+      subject: "Gracias por contactar - Clinica Veterinaria Palmanord",
+      html: buildClientHtml(payload),
+      text:
+        "Gracias, " +
+        payload.name +
+        ".\n\nHemos recibido tu solicitud y te contactaremos muy pronto.\nUrgencias: +34 655 214 080\n"
+    });
+    if (!clientResult.ok) {
       // La clinica ya tiene el aviso; no fallar el envio principal.
       console.error(
         "SMTP client copy failed:",
-        e && e.message ? e.message : e
+        clientResult.error || "mail_failed"
       );
     }
   }
@@ -425,7 +521,11 @@ const server = http.createServer(async function (req, res) {
     res.end(
       JSON.stringify({
         ok: true,
-        mailConfigured: isSmtpConfigured()
+        mailConfigured: isSmtpConfigured(),
+        smtpHost: SMTP_HOST,
+        smtpPort: SMTP_PORT,
+        mailTo: MAIL_TO,
+        lastSmtpError: lastSmtpErrorCode
       })
     );
     return;
@@ -464,6 +564,22 @@ server.listen(PORT, HOST, function () {
         ":" +
         SMTP_PORT
     );
+    var transport = getPrimaryTransport();
+    if (transport) {
+      transport.verify().then(
+        function () {
+          console.log("SMTP verify OK (" + SMTP_HOST + ":" + SMTP_PORT + ")");
+        },
+        function (err) {
+          lastSmtpErrorCode = classifySmtpError(err);
+          console.error(
+            "SMTP verify FAILED:",
+            err && err.code ? err.code : "",
+            err && err.message ? err.message : err
+          );
+        }
+      );
+    }
   }
   if (!CLARITY_PROJECT_ID) {
     console.warn(
