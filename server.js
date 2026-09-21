@@ -110,6 +110,8 @@ function createSmtpTransport(port, secure) {
     port: port,
     secure: secure,
     requireTLS: !secure,
+    // Railway a veces falla por IPv6 hacia hosts de correo; forzar IPv4.
+    family: 4,
     auth: {
       user: SMTP_USER,
       pass: SMTP_PASS
@@ -119,9 +121,9 @@ function createSmtpTransport(port, secure) {
       minVersion: "TLSv1.2",
       servername: SMTP_HOST
     },
-    connectionTimeout: 12000,
-    greetingTimeout: 12000,
-    socketTimeout: 20000
+    connectionTimeout: 15000,
+    greetingTimeout: 15000,
+    socketTimeout: 25000
   });
 }
 
