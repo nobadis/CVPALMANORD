@@ -25,7 +25,7 @@ El sitio se sirve en `http://localhost:3000` (o en el puerto definido por `PORT`
 2. Crea un nuevo proyecto en Railway y conecta ese repositorio.
 3. Railway usa Nixpacks (Node 20), detecta `package.json` y arranca con `npm start`.
 4. Healthcheck automatico en `/api/health` (definido en `railway.toml`).
-5. Configura variables de entorno (ver tabla abajo). Minimo para analytics: `CLARITY_PROJECT_ID`. Para el formulario: `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS` (correo del propio dominio en Dinahosting).
+5. Configura variables de entorno (ver tabla abajo). Minimo para analytics: `CLARITY_PROJECT_ID`. Para el formulario: solo `SMTP_PASS` (el resto del SMTP Dinahosting ya va por defecto).
 
 El servidor escucha en `0.0.0.0:$PORT` (requerido por Railway).
 
@@ -49,18 +49,18 @@ Copia `.env.example` y configura:
 | Variable | Obligatoria | Descripcion |
 | --- | --- | --- |
 | `PORT` | No (Railway la define) | Puerto HTTP del servidor |
-| `SMTP_HOST` | Si (formulario) | Host SMTP Dinahosting (`…correoseguro.dinaserver.com`) |
-| `SMTP_PORT` | No | Default `465` (SSL) |
-| `SMTP_SECURE` | No | Default `true` con puerto 465 |
-| `SMTP_USER` | Si (formulario) | Cuenta completa, p. ej. `cvpalmanord@cvpalmanord.es` |
-| `SMTP_PASS` | Si (formulario) | Contrasena de esa cuenta de correo |
+| `SMTP_PASS` | Si (formulario) | Contrasena de `cvpalmanord@cvpalmanord.es` |
+| `SMTP_HOST` | No | Default `cvpalmanord-es.correoseguro.dinaserver.com` |
+| `SMTP_PORT` | No | Default `465` (SMTPS) |
+| `SMTP_SECURE` | No | Default `true` |
+| `SMTP_USER` | No | Default `cvpalmanord@cvpalmanord.es` |
 | `MAIL_TO` | No | Default `cvpalmanord@cvpalmanord.es` |
 | `MAIL_FROM` | No | Default `cvpalmanord@cvpalmanord.es` |
 | `MAIL_FROM_NAME` | No | Default `Clinica Veterinaria Palmanord` |
 | `SEND_CLIENT_COPY` | No | Default `true` (confirmacion HTML al cliente) |
 | `CLARITY_PROJECT_ID` | No (sin ella Clarity no carga) | Project ID de Microsoft Clarity (`…/tag/XXXX`) |
 
-Sin SMTP completo, el formulario responde `form_not_configured` y no expone credenciales en el cliente. No usa Formspree ni webhooks de terceros: envia por SMTP del propio dominio.
+Sin `SMTP_PASS`, el formulario responde `form_not_configured`. No usa Formspree ni webhooks de terceros: envia por SMTP del propio dominio (Dinahosting SMTPS 465).
 
 ### Comprobaciones recomendadas tras desplegar
 

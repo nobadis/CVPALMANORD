@@ -25,9 +25,14 @@ const SEND_CLIENT_COPY = String(process.env.SEND_CLIENT_COPY || "true")
   .trim()
   .toLowerCase() !== "false";
 
-const SMTP_HOST = (process.env.SMTP_HOST || "").trim();
+// Defaults = panel Dinahosting (SMTPS 465). En Railway solo hace falta SMTP_PASS.
+const SMTP_HOST = (
+  process.env.SMTP_HOST || "cvpalmanord-es.correoseguro.dinaserver.com"
+).trim();
 const SMTP_PORT = Number.parseInt(process.env.SMTP_PORT || "465", 10) || 465;
-const SMTP_USER = (process.env.SMTP_USER || "").trim();
+const SMTP_USER = (
+  process.env.SMTP_USER || "cvpalmanord@cvpalmanord.es"
+).trim();
 const SMTP_PASS = process.env.SMTP_PASS || "";
 const SMTP_SECURE =
   String(process.env.SMTP_SECURE || (SMTP_PORT === 465 ? "true" : "false"))
@@ -446,10 +451,19 @@ server.listen(PORT, HOST, function () {
   );
   if (!isSmtpConfigured()) {
     console.warn(
-      "SMTP incompleto: el formulario no enviara correo hasta configurar SMTP_HOST, SMTP_USER, SMTP_PASS (y opcionalmente MAIL_TO/MAIL_FROM)."
+      "SMTP_PASS no configurada: el formulario no enviara correo hasta definir SMTP_PASS en Railway."
     );
   } else {
-    console.log("Correo del formulario: " + MAIL_FROM + " -> " + MAIL_TO);
+    console.log(
+      "Correo del formulario: " +
+        MAIL_FROM +
+        " -> " +
+        MAIL_TO +
+        " via " +
+        SMTP_HOST +
+        ":" +
+        SMTP_PORT
+    );
   }
   if (!CLARITY_PROJECT_ID) {
     console.warn(
