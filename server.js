@@ -10,8 +10,10 @@ const PORT = Number.parseInt(process.env.PORT || "3000", 10) || 3000;
 const HOST = "0.0.0.0";
 
 const CLARITY_PROJECT_ID = (process.env.CLARITY_PROJECT_ID || "").trim();
-// Formspree: https://formspree.io/f/xxxxxxxx  → llega a cvpalmanord@cvpalmanord.es
-const FORM_ENDPOINT = (process.env.FORM_ENDPOINT || "").trim();
+// Formspree → cvpalmanord@cvpalmanord.es (override opcional con FORM_ENDPOINT)
+const FORM_ENDPOINT = (
+  process.env.FORM_ENDPOINT || "https://formspree.io/f/meaogaoa"
+).trim();
 
 const MAX_BODY_BYTES = 16 * 1024;
 const BLOCKED_PATH =
@@ -343,10 +345,10 @@ server.listen(PORT, HOST, function () {
   );
   if (!isFormConfigured()) {
     console.warn(
-      "FORM_ENDPOINT no configurada: crea un form en Formspree y pon FORM_ENDPOINT=https://formspree.io/f/xxxx en Railway."
+      "FORM_ENDPOINT invalida: el formulario no enviara solicitudes."
     );
   } else {
-    console.log("Formulario listo via FORM_ENDPOINT");
+    console.log("Formulario listo via Formspree");
   }
   if (!CLARITY_PROJECT_ID) {
     console.warn(

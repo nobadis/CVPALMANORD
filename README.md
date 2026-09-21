@@ -25,7 +25,7 @@ El sitio se sirve en `http://localhost:3000` (o en el puerto definido por `PORT`
 2. Crea un nuevo proyecto en Railway y conecta ese repositorio.
 3. Railway usa Nixpacks (Node 20), detecta `package.json` y arranca con `npm start`.
 4. Healthcheck automatico en `/api/health` (definido en `railway.toml`).
-5. Configura variables de entorno (ver tabla abajo). Minimo: `FORM_ENDPOINT` (Formspree) y opcional `CLARITY_PROJECT_ID`.
+5. Configura variables de entorno (ver tabla abajo). El formulario ya tiene Formspree por defecto. Opcional: `CLARITY_PROJECT_ID`.
 
 El servidor escucha en `0.0.0.0:$PORT` (requerido por Railway).
 
@@ -49,10 +49,10 @@ Copia `.env.example` y configura:
 | Variable | Obligatoria | Descripcion |
 | --- | --- | --- |
 | `PORT` | No (Railway la define) | Puerto HTTP del servidor |
-| `FORM_ENDPOINT` | Si (formulario) | URL Formspree `https://formspree.io/f/xxxxxxxx` |
+| `FORM_ENDPOINT` | No | Default `https://formspree.io/f/meaogaoa` (Formspree → `cvpalmanord@cvpalmanord.es`) |
 | `CLARITY_PROJECT_ID` | No | Project ID de Microsoft Clarity (`…/tag/XXXX`) |
 
-El SMTP de Dinahosting **no es alcanzable desde Railway**. La via mas simple es Formspree: el correo llega a `cvpalmanord@cvpalmanord.es`. Sin `FORM_ENDPOINT`, el formulario responde `form_not_configured`.
+El SMTP de Dinahosting **no es alcanzable desde Railway**. El formulario usa Formspree por defecto.
 
 ### Comprobaciones recomendadas tras desplegar
 
