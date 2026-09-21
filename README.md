@@ -25,7 +25,7 @@ El sitio se sirve en `http://localhost:3000` (o en el puerto definido por `PORT`
 2. Crea un nuevo proyecto en Railway y conecta ese repositorio.
 3. Railway usa Nixpacks (Node 20), detecta `package.json` y arranca con `npm start`.
 4. Healthcheck automatico en `/api/health` (definido en `railway.toml`).
-5. Configura variables de entorno (ver tabla abajo). Minimo para analytics: `CLARITY_PROJECT_ID`. Para el formulario: solo `SMTP_PASS` (el resto del SMTP Dinahosting ya va por defecto).
+5. Configura variables de entorno (ver tabla abajo). Minimo: `FORM_ENDPOINT` (Formspree) y opcional `CLARITY_PROJECT_ID`.
 
 El servidor escucha en `0.0.0.0:$PORT` (requerido por Railway).
 
@@ -49,18 +49,10 @@ Copia `.env.example` y configura:
 | Variable | Obligatoria | Descripcion |
 | --- | --- | --- |
 | `PORT` | No (Railway la define) | Puerto HTTP del servidor |
-| `SMTP_PASS` | Si (formulario) | Contrasena de `cvpalmanord@cvpalmanord.es` |
-| `SMTP_HOST` | No | Default `cvpalmanord-es.correoseguro.dinaserver.com` |
-| `SMTP_PORT` | No | Default `465` (SMTPS) |
-| `SMTP_SECURE` | No | Default `true` |
-| `SMTP_USER` | No | Default `cvpalmanord@cvpalmanord.es` |
-| `MAIL_TO` | No | Default `cvpalmanord@cvpalmanord.es` |
-| `MAIL_FROM` | No | Default `cvpalmanord@cvpalmanord.es` |
-| `MAIL_FROM_NAME` | No | Default `Clinica Veterinaria Palmanord` |
-| `SEND_CLIENT_COPY` | No | Default `true` (confirmacion HTML al cliente) |
-| `CLARITY_PROJECT_ID` | No (sin ella Clarity no carga) | Project ID de Microsoft Clarity (`…/tag/XXXX`) |
+| `FORM_ENDPOINT` | Si (formulario) | URL Formspree `https://formspree.io/f/xxxxxxxx` |
+| `CLARITY_PROJECT_ID` | No | Project ID de Microsoft Clarity (`…/tag/XXXX`) |
 
-Sin `SMTP_PASS`, el formulario responde `form_not_configured`. No usa Formspree ni webhooks de terceros: envia por SMTP del propio dominio (Dinahosting SMTPS 465).
+El SMTP de Dinahosting **no es alcanzable desde Railway**. La via mas simple es Formspree: el correo llega a `cvpalmanord@cvpalmanord.es`. Sin `FORM_ENDPOINT`, el formulario responde `form_not_configured`.
 
 ### Comprobaciones recomendadas tras desplegar
 
@@ -132,7 +124,7 @@ npx @railway/cli up
 7. Prueba funcional final:
    - Navegacion completa
    - `/api/clarity-config` (con `CLARITY_PROJECT_ID` → ID; sin ella → `null`)
-   - `/api/health` → `mailConfigured: true` cuando SMTP esta completo
+   - `/api/health` → `formConfigured: true` cuando `FORM_ENDPOINT` esta definida
    - Formularios (incluyendo consentimiento RGPD)
    - Banner y configuracion de cookies
    - Paginas legales y enlaces de footer

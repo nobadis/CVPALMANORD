@@ -12,7 +12,6 @@
     "audit:deps": "npm audit --omit=dev"
   },
   "dependencies": {
-    "nodemailer": "6.10.1",
     "serve-handler": "6.1.7"
   }
 }

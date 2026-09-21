@@ -277,19 +277,11 @@
           return;
         }
         var err = result.data && result.data.error ? result.data.error : "unknown";
-        if (err === "mail_failed" || err === "smtp_unreachable") {
+        if (err === "mail_failed") {
           setFormStatus(
             form,
             "error",
             "No se pudo enviar el correo desde el servidor. Llama al +34 655 214 080 o escribe a cvpalmanord@cvpalmanord.es."
-          );
-          return;
-        }
-        if (err === "smtp_auth_failed") {
-          setFormStatus(
-            form,
-            "error",
-            "Error de autenticacion de correo en el servidor. Contacta con la clinica por telefono o email."
           );
           return;
         }

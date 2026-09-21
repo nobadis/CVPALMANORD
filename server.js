@@ -3,7 +3,6 @@
 const http = require("http");
 const path = require("path");
 const { URL } = require("url");
-const nodemailer = require("nodemailer");
 const serveHandler = require("serve-handler");
 
 const SITE_DIR = path.join(__dirname, "site");
@@ -11,34 +10,8 @@ const PORT = Number.parseInt(process.env.PORT || "3000", 10) || 3000;
 const HOST = "0.0.0.0";
 
 const CLARITY_PROJECT_ID = (process.env.CLARITY_PROJECT_ID || "").trim();
-
-const MAIL_TO = (process.env.MAIL_TO || "cvpalmanord@cvpalmanord.es").trim();
-const MAIL_FROM = (process.env.MAIL_FROM || "cvpalmanord@cvpalmanord.es").trim();
-const MAIL_FROM_NAME = (
-  process.env.MAIL_FROM_NAME || "Clinica Veterinaria Palmanord"
-).trim();
-const SITE_URL = (process.env.SITE_URL || "https://cvpalmanord.es").replace(
-  /\/$/,
-  ""
-);
-const SEND_CLIENT_COPY = String(process.env.SEND_CLIENT_COPY || "true")
-  .trim()
-  .toLowerCase() !== "false";
-
-// Defaults = panel Dinahosting (SMTPS 465). En Railway solo hace falta SMTP_PASS.
-const SMTP_HOST = (
-  process.env.SMTP_HOST || "cvpalmanord-es.correoseguro.dinaserver.com"
-).trim();
-const SMTP_PORT = Number.parseInt(process.env.SMTP_PORT || "465", 10) || 465;
-const SMTP_USER = (
-  process.env.SMTP_USER || "cvpalmanord@cvpalmanord.es"
-).trim();
-// Trim evita fallos por espacios/saltos al pegar la contraseña en Railway.
-const SMTP_PASS = String(process.env.SMTP_PASS || "").trim();
-const SMTP_SECURE =
-  String(process.env.SMTP_SECURE || (SMTP_PORT === 465 ? "true" : "false"))
-    .trim()
-    .toLowerCase() !== "false";
+// Formspree: https://formspree.io/f/xxxxxxxx  → llega a cvpalmanord@cvpalmanord.es
+const FORM_ENDPOINT = (process.env.FORM_ENDPOINT || "").trim();
 
 const MAX_BODY_BYTES = 16 * 1024;
 const BLOCKED_PATH =
@@ -96,123 +69,13 @@ const SERVE_CONFIG = {
   ]
 };
 
-var mailTransportPrimary = null;
-var mailTransportFallback = null;
-var lastSmtpErrorCode = null;
-
-function isSmtpConfigured() {
-  return !!(SMTP_HOST && SMTP_USER && SMTP_PASS && MAIL_TO && MAIL_FROM);
-}
-
-function createSmtpTransport(port, secure) {
-  return nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: port,
-    secure: secure,
-    requireTLS: !secure,
-    // Railway a veces falla por IPv6 hacia hosts de correo; forzar IPv4.
-    family: 4,
-    auth: {
-      user: SMTP_USER,
-      pass: SMTP_PASS
-    },
-    authMethod: "LOGIN",
-    tls: {
-      minVersion: "TLSv1.2",
-      servername: SMTP_HOST
-    },
-    connectionTimeout: 15000,
-    greetingTimeout: 15000,
-    socketTimeout: 25000
-  });
-}
-
-function getPrimaryTransport() {
-  if (!isSmtpConfigured()) return null;
-  if (!mailTransportPrimary) {
-    mailTransportPrimary = createSmtpTransport(SMTP_PORT, SMTP_SECURE);
-  }
-  return mailTransportPrimary;
-}
-
-function getFallbackTransport() {
-  if (!isSmtpConfigured()) return null;
-  // Si el primario ya es 587, no hay fallback distinto.
-  if (SMTP_PORT === 587 && !SMTP_SECURE) return null;
-  if (!mailTransportFallback) {
-    mailTransportFallback = createSmtpTransport(587, false);
-  }
-  return mailTransportFallback;
-}
-
-function classifySmtpError(err) {
-  var code = String((err && (err.code || err.responseCode)) || "").toUpperCase();
-  var msg = String((err && err.message) || "").toLowerCase();
-  if (
-    code === "EAUTH" ||
-    code === "535" ||
-    code === "534" ||
-    msg.indexOf("invalid login") !== -1 ||
-    msg.indexOf("authentication failed") !== -1 ||
-    msg.indexOf("username and password not accepted") !== -1
-  ) {
-    return "smtp_auth_failed";
-  }
-  if (
-    code === "ESOCKET" ||
-    code === "ECONNECTION" ||
-    code === "ETIMEDOUT" ||
-    code === "ECONNREFUSED" ||
-    code === "EENVELOPE" ||
-    msg.indexOf("connect") !== -1 ||
-    msg.indexOf("timeout") !== -1
-  ) {
-    return "smtp_unreachable";
-  }
-  return "mail_failed";
-}
-
-async function sendMailReliable(mailOptions) {
-  var primary = getPrimaryTransport();
-  if (!primary) {
-    return { ok: false, status: 503, error: "form_not_configured" };
-  }
-
+function isFormConfigured() {
+  if (!FORM_ENDPOINT) return false;
   try {
-    await primary.sendMail(mailOptions);
-    lastSmtpErrorCode = null;
-    return { ok: true };
-  } catch (firstErr) {
-    lastSmtpErrorCode = classifySmtpError(firstErr);
-    console.error(
-      "SMTP primary failed (" +
-        SMTP_HOST +
-        ":" +
-        SMTP_PORT +
-        "):",
-      firstErr && firstErr.code ? firstErr.code : "",
-      firstErr && firstErr.message ? firstErr.message : firstErr
-    );
-
-    var fallback = getFallbackTransport();
-    if (!fallback) {
-      return { ok: false, status: 502, error: lastSmtpErrorCode };
-    }
-
-    try {
-      await fallback.sendMail(mailOptions);
-      lastSmtpErrorCode = null;
-      console.warn("SMTP fallback 587 STARTTLS succeeded after primary failure.");
-      return { ok: true };
-    } catch (secondErr) {
-      lastSmtpErrorCode = classifySmtpError(secondErr);
-      console.error(
-        "SMTP fallback failed (587):",
-        secondErr && secondErr.code ? secondErr.code : "",
-        secondErr && secondErr.message ? secondErr.message : secondErr
-      );
-      return { ok: false, status: 502, error: lastSmtpErrorCode };
-    }
+    var u = new URL(FORM_ENDPOINT);
+    return u.protocol === "https:";
+  } catch (e) {
+    return false;
   }
 }
 
@@ -277,15 +140,6 @@ function sanitizeText(value, maxLen) {
     .slice(0, maxLen);
 }
 
-function escapeHtml(value) {
-  return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
 function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) && value.length <= 254;
 }
@@ -335,103 +189,48 @@ function validateContactPayload(body) {
   return { ok: true, payload: payload };
 }
 
-function buildStaffText(payload) {
-  return [
-    "Nueva solicitud web",
-    "",
-    "Nombre: " + payload.name,
-    "Email: " + payload.email,
-    "Telefono: " + payload.phone,
-    "Mascota: " + payload.animalName,
-    "Raza: " + payload.animalRace,
-    "Peso: " + payload.animalWeight,
-    "Mensaje: " + (payload.message || "(sin mensaje)"),
-    "Marketing: " + (payload.marketing ? "Si" : "No"),
-    "Origen: " + payload.source,
-    "Fecha: " + new Date().toISOString()
-  ].join("\n");
-}
-
-function buildClientHtml(payload) {
-  var logo =
-    SITE_URL + "/wp-content/uploads/2021/11/logo_palmanord_blusa.png";
-  var msg = payload.message
-    ? escapeHtml(payload.message).replace(/\n/g, "<br>")
-    : "Sin mensaje adicional";
-
-  return (
-    '<!DOCTYPE html><html lang="es"><body style="font-family:Arial,sans-serif;background:#f7f9fb;color:#263246;padding:20px;">' +
-    '<table width="100%" style="max-width:560px;margin:0 auto;background:#fff;border:1px solid #e5e5e5;"><tr><td style="background:#263246;padding:20px;text-align:center;">' +
-    '<img src="' +
-    escapeHtml(logo) +
-    '" alt="Palmanord" width="100" style="display:block;margin:0 auto 8px;"></td></tr>' +
-    '<tr><td style="padding:24px;"><h1 style="margin:0 0 12px;font-size:22px;">Gracias, ' +
-    escapeHtml(payload.name) +
-    "</h1>" +
-    "<p>Hemos recibido tu solicitud. <strong>Te contactaremos muy pronto</strong>.</p>" +
-    '<p style="font-size:14px;color:#64748b;">Urgencias: <a href="tel:+34655214080">+34 655 214 080</a></p>' +
-    '<hr style="border:none;border-top:1px solid #e5e5e5;margin:16px 0;">' +
-    "<p><strong>Resumen:</strong><br>Telefono: " +
-    escapeHtml(payload.phone) +
-    "<br>Mascota: " +
-    escapeHtml(payload.animalName) +
-    " (" +
-    escapeHtml(payload.animalRace) +
-    ", " +
-    escapeHtml(payload.animalWeight) +
-    ")<br>" +
-    msg +
-    "</p>" +
-    '<p style="text-align:center;margin-top:20px;"><a href="' +
-    escapeHtml(SITE_URL) +
-    '" style="background:#d83a3a;color:#fff;padding:10px 18px;text-decoration:none;border-radius:6px;">Visitar web</a></p>' +
-    "</td></tr></table></body></html>"
-  );
-}
-
-async function sendContactEmail(payload) {
-  if (!isSmtpConfigured()) {
+async function forwardToFormspree(payload) {
+  if (!isFormConfigured()) {
     return { ok: false, status: 503, error: "form_not_configured" };
   }
 
-  var fromHeader = '"' + MAIL_FROM_NAME.replace(/"/g, "") + '" <' + MAIL_FROM + ">";
-  var subject = "[Presupuesto web] " + payload.name;
-
-  var staffResult = await sendMailReliable({
-    from: fromHeader,
-    to: MAIL_TO,
-    replyTo: payload.email,
-    subject: subject,
-    text: buildStaffText(payload)
-  });
-
-  if (!staffResult.ok) {
-    return {
-      ok: false,
-      status: staffResult.status || 502,
-      error: staffResult.error || "mail_failed"
-    };
+  var response;
+  try {
+    response = await fetch(FORM_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json"
+      },
+      body: JSON.stringify({
+        _subject: "[Presupuesto web] " + payload.name,
+        name: payload.name,
+        email: payload.email,
+        phone: payload.phone,
+        animalName: payload.animalName,
+        animalRace: payload.animalRace,
+        animalWeight: payload.animalWeight,
+        message: payload.message || "(sin mensaje)",
+        marketing: payload.marketing ? "Si" : "No",
+        source: payload.source,
+        _replyto: payload.email
+      }),
+      signal: AbortSignal.timeout(15000)
+    });
+  } catch (e) {
+    console.error("Formspree network error:", e && e.message ? e.message : e);
+    return { ok: false, status: 502, error: "mail_failed" };
   }
 
-  if (SEND_CLIENT_COPY) {
-    var clientResult = await sendMailReliable({
-      from: fromHeader,
-      to: payload.email,
-      replyTo: MAIL_TO,
-      subject: "Gracias por contactar - Clinica Veterinaria Palmanord",
-      html: buildClientHtml(payload),
-      text:
-        "Gracias, " +
-        payload.name +
-        ".\n\nHemos recibido tu solicitud y te contactaremos muy pronto.\nUrgencias: +34 655 214 080\n"
-    });
-    if (!clientResult.ok) {
-      // La clinica ya tiene el aviso; no fallar el envio principal.
-      console.error(
-        "SMTP client copy failed:",
-        clientResult.error || "mail_failed"
-      );
+  if (!response.ok) {
+    var detail = "";
+    try {
+      detail = await response.text();
+    } catch (e) {
+      detail = "";
     }
+    console.error("Formspree rejected:", response.status, detail.slice(0, 300));
+    return { ok: false, status: 502, error: "mail_failed" };
   }
 
   return { ok: true, status: 200 };
@@ -450,12 +249,7 @@ async function handleContactApi(req, res) {
 
   if (req.method === "GET") {
     res.writeHead(200);
-    res.end(
-      JSON.stringify({
-        ok: true,
-        configured: isSmtpConfigured()
-      })
-    );
+    res.end(JSON.stringify({ ok: true, configured: isFormConfigured() }));
     return;
   }
 
@@ -490,7 +284,7 @@ async function handleContactApi(req, res) {
     return;
   }
 
-  var result = await sendContactEmail(validated.payload);
+  var result = await forwardToFormspree(validated.payload);
   res.writeHead(result.status || (result.ok ? 200 : 500));
   res.end(JSON.stringify({ ok: result.ok, error: result.error || null }));
 }
@@ -523,11 +317,7 @@ const server = http.createServer(async function (req, res) {
     res.end(
       JSON.stringify({
         ok: true,
-        mailConfigured: isSmtpConfigured(),
-        smtpHost: SMTP_HOST,
-        smtpPort: SMTP_PORT,
-        mailTo: MAIL_TO,
-        lastSmtpError: lastSmtpErrorCode
+        formConfigured: isFormConfigured()
       })
     );
     return;
@@ -551,37 +341,12 @@ server.listen(PORT, HOST, function () {
   console.log(
     "CV Palmanord static server listening on http://" + HOST + ":" + PORT
   );
-  if (!isSmtpConfigured()) {
+  if (!isFormConfigured()) {
     console.warn(
-      "SMTP_PASS no configurada: el formulario no enviara correo hasta definir SMTP_PASS en Railway."
+      "FORM_ENDPOINT no configurada: crea un form en Formspree y pon FORM_ENDPOINT=https://formspree.io/f/xxxx en Railway."
     );
   } else {
-    console.log(
-      "Correo del formulario: " +
-        MAIL_FROM +
-        " -> " +
-        MAIL_TO +
-        " via " +
-        SMTP_HOST +
-        ":" +
-        SMTP_PORT
-    );
-    var transport = getPrimaryTransport();
-    if (transport) {
-      transport.verify().then(
-        function () {
-          console.log("SMTP verify OK (" + SMTP_HOST + ":" + SMTP_PORT + ")");
-        },
-        function (err) {
-          lastSmtpErrorCode = classifySmtpError(err);
-          console.error(
-            "SMTP verify FAILED:",
-            err && err.code ? err.code : "",
-            err && err.message ? err.message : err
-          );
-        }
-      );
-    }
+    console.log("Formulario listo via FORM_ENDPOINT");
   }
   if (!CLARITY_PROJECT_ID) {
     console.warn(
