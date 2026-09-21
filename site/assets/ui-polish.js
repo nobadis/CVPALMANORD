@@ -293,6 +293,14 @@
           );
           return;
         }
+        if (err === "invalid_email" || err === "invalid_phone" || err === "missing_required_fields") {
+          setFormStatus(
+            form,
+            "error",
+            "Revisa los datos del formulario (nombre, email, telefono y datos de la mascota)."
+          );
+          return;
+        }
         if (err === "rate_limited") {
           setFormStatus(form, "error", "Has enviado demasiadas solicitudes. Espera unos minutos e intentalo de nuevo.");
           return;

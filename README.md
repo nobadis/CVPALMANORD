@@ -25,7 +25,7 @@ El sitio se sirve en `http://localhost:3000` (o en el puerto definido por `PORT`
 2. Crea un nuevo proyecto en Railway y conecta ese repositorio.
 3. Railway usa Nixpacks (Node 20), detecta `package.json` y arranca con `npm start`.
 4. Healthcheck automatico en `/api/health` (definido en `railway.toml`).
-5. Configura variables de entorno (ver tabla abajo). Minimo para analytics: `CLARITY_PROJECT_ID`. Para el formulario: `FORM_WEBHOOK_URL`.
+5. Configura variables de entorno (ver tabla abajo). Minimo para analytics: `CLARITY_PROJECT_ID`. Para el formulario: `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS` (correo del propio dominio en Dinahosting).
 
 El servidor escucha en `0.0.0.0:$PORT` (requerido por Railway).
 
@@ -49,11 +49,18 @@ Copia `.env.example` y configura:
 | Variable | Obligatoria | Descripcion |
 | --- | --- | --- |
 | `PORT` | No (Railway la define) | Puerto HTTP del servidor |
-| `FORM_WEBHOOK_URL` | Si (produccion) | URL HTTPS del servicio que recibe solicitudes (Formspree, Make, n8n, etc.) |
-| `FORM_WEBHOOK_SECRET` | No | Token Bearer opcional para el webhook |
+| `SMTP_HOST` | Si (formulario) | Host SMTP Dinahosting (`…correoseguro.dinaserver.com`) |
+| `SMTP_PORT` | No | Default `465` (SSL) |
+| `SMTP_SECURE` | No | Default `true` con puerto 465 |
+| `SMTP_USER` | Si (formulario) | Cuenta completa, p. ej. `cvpalmanord@cvpalmanord.es` |
+| `SMTP_PASS` | Si (formulario) | Contrasena de esa cuenta de correo |
+| `MAIL_TO` | No | Default `cvpalmanord@cvpalmanord.es` |
+| `MAIL_FROM` | No | Default `cvpalmanord@cvpalmanord.es` |
+| `MAIL_FROM_NAME` | No | Default `Clinica Veterinaria Palmanord` |
+| `SEND_CLIENT_COPY` | No | Default `true` (confirmacion HTML al cliente) |
 | `CLARITY_PROJECT_ID` | No (sin ella Clarity no carga) | Project ID de Microsoft Clarity (`…/tag/XXXX`) |
 
-Sin `FORM_WEBHOOK_URL`, el formulario de presupuesto muestra un aviso y no expone credenciales en el cliente.
+Sin SMTP completo, el formulario responde `form_not_configured` y no expone credenciales en el cliente. No usa Formspree ni webhooks de terceros: envia por SMTP del propio dominio.
 
 ### Comprobaciones recomendadas tras desplegar
 
@@ -125,6 +132,7 @@ npx @railway/cli up
 7. Prueba funcional final:
    - Navegacion completa
    - `/api/clarity-config` (con `CLARITY_PROJECT_ID` → ID; sin ella → `null`)
+   - `/api/health` → `mailConfigured: true` cuando SMTP esta completo
    - Formularios (incluyendo consentimiento RGPD)
    - Banner y configuracion de cookies
    - Paginas legales y enlaces de footer
