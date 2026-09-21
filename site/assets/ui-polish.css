@@ -197,6 +197,14 @@ select:focus {
   display: block;
 }
 
+.hp-field {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
 .legal-links {
   display: flex;
   flex-wrap: wrap;
@@ -397,4 +405,292 @@ select:focus {
 .ui-simple-carousel .elementor-swiper-button i {
   color: #fff;
   font-size: 15px;
+}
+
+/* —— Pide presupuesto (integrado con la web) —— */
+@keyframes quote-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.elementor-page-1041 .sydney-hero-area {
+  min-height: 100px;
+}
+
+.elementor-page-1041 .header-image {
+  height: 100px !important;
+}
+
+.elementor-page-1041 .elementor-element-8b69048 .elementor-heading-title {
+  color: #263246;
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  margin-bottom: 8px;
+}
+
+.quote-form-shell {
+  max-width: 860px;
+  margin: 0 auto 32px;
+  text-align: center;
+}
+
+.quote-panel {
+  display: block;
+}
+
+.quote-panel[hidden] {
+  display: none !important;
+}
+
+.quote-intro {
+  margin: 0 0 20px;
+  color: #263246;
+  font-size: 0.95rem;
+  opacity: 0.85;
+}
+
+.quote-intro a {
+  color: #0e7d7d;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.quote-intro a:hover {
+  text-decoration: underline;
+}
+
+#contact_us_form.quote-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 30px;
+  text-align: left;
+  margin: 0;
+}
+
+.quote-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 0 22px;
+  text-align: left;
+}
+
+.quote-field-full {
+  grid-column: 1 / -1;
+}
+
+.quote-label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #263246;
+}
+
+.quote-optional {
+  font-weight: 400;
+  color: #94a3b8;
+  font-style: normal;
+}
+
+.quote-input {
+  width: 100%;
+  color: #263246;
+  background-color: #fafafa;
+  border: 1px solid #e5e5e5;
+  height: 50px;
+  padding: 12px 18px;
+  font-size: 15px;
+  border-radius: 0;
+  box-shadow: none !important;
+  transition: border-color var(--ui-ease), background var(--ui-ease);
+}
+
+.quote-textarea {
+  height: auto;
+  min-height: 90px;
+  resize: vertical;
+  padding-top: 14px;
+}
+
+.quote-input:focus {
+  background: #fff;
+  border-color: #0e7d7d;
+  outline: none;
+}
+
+.quote-input.is-invalid {
+  border-color: #d83a3a;
+  background: #fff8f8;
+}
+
+.quote-field-error {
+  display: none;
+  font-size: 0.8rem;
+  color: #d83a3a;
+}
+
+.quote-field.has-error .quote-field-error {
+  display: block;
+}
+
+.legal-consent-compact {
+  margin: 4px 0 18px;
+  padding: 14px 16px;
+  background: #fafafa;
+  border: 1px solid #e5e5e5;
+  text-align: left;
+}
+
+.quote-check {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 0 0 10px;
+  font-size: 0.88rem;
+  color: #263246;
+  cursor: pointer;
+}
+
+.quote-check a {
+  color: #0e7d7d;
+}
+
+.quote-check input {
+  margin-top: 2px;
+  accent-color: #0e7d7d;
+}
+
+.quote-actions {
+  margin: 0;
+  text-align: center;
+}
+
+.quote-submit-btn {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 220px;
+  padding: 15px 36px !important;
+  font-size: 14px !important;
+  cursor: pointer;
+}
+
+.quote-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.quote-btn-spinner {
+  display: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: quote-spin 0.7s linear infinite;
+}
+
+.quote-form-modern.is-submitting .quote-btn-spinner {
+  display: inline-block;
+}
+
+/* Pantallas resultado (exito / error / cargando) */
+.quote-result-page {
+  padding: 36px 24px 28px;
+  background: #fafafa;
+  border: 1px solid #e5e5e5;
+}
+
+.quote-result-logo {
+  display: block;
+  margin: 0 auto 16px;
+}
+
+.quote-result-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: #0e7d7d;
+  color: #fff;
+  font-size: 2rem;
+  line-height: 64px;
+  font-weight: 700;
+}
+
+.quote-result-icon-error {
+  background: #d83a3a;
+}
+
+.quote-result-title {
+  margin: 0 0 12px;
+  color: #263246;
+  font-size: clamp(1.4rem, 3vw, 1.85rem);
+  font-weight: 700;
+}
+
+.quote-result-text {
+  margin: 0 auto 10px;
+  max-width: 520px;
+  color: #475569;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.quote-result-sub {
+  margin: 0 auto 16px;
+  max-width: 480px;
+  color: #64748b;
+  font-size: 0.92rem;
+}
+
+.quote-result-contact {
+  margin: 0 0 22px;
+  font-size: 0.95rem;
+}
+
+.quote-result-contact a {
+  color: #0e7d7d;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.quote-result-contact a:hover {
+  text-decoration: underline;
+}
+
+.quote-result-cta {
+  display: inline-block !important;
+  padding: 14px 28px !important;
+  text-decoration: none !important;
+}
+
+.quote-loading-spinner {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 16px;
+  border: 4px solid #e5e5e5;
+  border-top-color: #0e7d7d;
+  border-radius: 50%;
+  animation: quote-spin 0.8s linear infinite;
+}
+
+@media (max-width: 768px) {
+  #contact_us_form.quote-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .quote-field {
+    margin-bottom: 18px;
+  }
+
+  .quote-submit-btn {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .quote-result-page {
+    padding: 28px 16px 22px;
+  }
 }

@@ -1,0 +1,6 @@
+<?php
+/**
+ * YA NO ES NECESARIO.
+ * Toda la configuracion esta en contact.php (emails, sitio, limites).
+ * Puedes borrar contact-config.php del servidor si lo tenias creado.
+ */

@@ -2,3 +2,8 @@
 node_modules/
 .DS_Store
 tmp/
+.env
+.env.local
+*.zip
+cvpalmanord-www.zip
+.railway/

@@ -45,10 +45,278 @@
       "</div>";
   }
 
+  function getFieldValue(form, names) {
+    for (var i = 0; i < names.length; i += 1) {
+      var field = form.querySelector('[name="' + names[i] + '"]');
+      if (field && typeof field.value === "string" && field.value.trim()) {
+        return field.value.trim();
+      }
+    }
+    return "";
+  }
+
+  function showQuotePanel(panelId) {
+    var ids = ["quote-panel-form", "quote-panel-success", "quote-panel-error", "quote-panel-loading"];
+    for (var i = 0; i < ids.length; i += 1) {
+      var panel = doc.getElementById(ids[i]);
+      if (panel) panel.hidden = ids[i] !== panelId;
+    }
+    if (panelId !== "quote-panel-loading") {
+      var form = doc.getElementById("quote-form");
+      var btn = doc.getElementById("quote-submit-btn");
+      if (form) form.classList.remove("is-submitting");
+      if (btn) btn.disabled = false;
+    }
+    var shell = doc.getElementById("quote-form-shell");
+    if (shell && shell.scrollIntoView) {
+      shell.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
+  function showQuoteLoading(form, loading) {
+    var btn = doc.getElementById("quote-submit-btn");
+    if (loading) {
+      if (form) form.classList.add("is-submitting");
+      if (btn) btn.disabled = true;
+      showQuotePanel("quote-panel-loading");
+    } else {
+      if (form) form.classList.remove("is-submitting");
+      if (btn) btn.disabled = false;
+      showQuotePanel("quote-panel-form");
+    }
+  }
+
+  function showQuoteSuccessPage() {
+    showQuotePanel("quote-panel-success");
+  }
+
+  function showQuoteErrorPage(message) {
+    var msgEl = doc.getElementById("quote-error-message");
+    if (msgEl) msgEl.textContent = message;
+    showQuotePanel("quote-panel-error");
+  }
+
+  function setFormStatus(form, type, message) {
+    if (form.classList.contains("quote-form-modern")) {
+      if (type === "ok") {
+        showQuoteSuccessPage();
+        return;
+      }
+      showQuoteErrorPage(message);
+      return;
+    }
+    var output = form.parentNode && form.parentNode.querySelector(".wpcf7-response-output");
+    if (!output) {
+      output = doc.createElement("div");
+      output.className = "wpcf7-response-output";
+      form.appendChild(output);
+    }
+    output.textContent = message;
+    output.setAttribute("aria-hidden", "false");
+    output.className = "wpcf7-response-output " + (type === "ok" ? "wpcf7-mail-sent-ok" : "wpcf7-validation-errors");
+  }
+
+  function isValidEmailValue(value) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  }
+
+  function setFieldError(fieldWrap, message) {
+    fieldWrap.classList.add("has-error");
+    var input = fieldWrap.querySelector(".quote-input, .wpcf7-form-control");
+    if (input) input.classList.add("is-invalid");
+    var err = fieldWrap.querySelector(".quote-field-error");
+    if (err) err.textContent = message;
+  }
+
+  function clearQuoteFieldErrors(form) {
+    var fields = form.querySelectorAll(".quote-field");
+    for (var i = 0; i < fields.length; i += 1) {
+      fields[i].classList.remove("has-error");
+      var input = fields[i].querySelector(".quote-input");
+      if (input) input.classList.remove("is-invalid");
+      var err = fields[i].querySelector(".quote-field-error");
+      if (err) err.textContent = "";
+    }
+  }
+
+  function validateQuoteForm(form) {
+    clearQuoteFieldErrors(form);
+    var valid = true;
+
+    function check(name, msg, validator) {
+      var input = form.querySelector('[name="' + name + '"]');
+      var wrap = input && input.closest(".quote-field");
+      var val = input && input.value ? input.value.trim() : "";
+      if (!val || (validator && !validator(val))) {
+        if (wrap) setFieldError(wrap, msg);
+        valid = false;
+      }
+    }
+
+    check("your-name", "Indica tu nombre.");
+    check("your-email", "Indica un correo valido.", isValidEmailValue);
+    check("your-phone", "Indica un telefono valido.", function (v) {
+      return v.replace(/\D/g, "").length >= 8;
+    });
+    check("your-animal-name", "Indica el nombre de tu mascota.");
+    check("your-animal-race", "Indica especie y raza.");
+    check("your-animal-weight", "Indica el peso aproximado.");
+
+    var legal = form.querySelector('input[name="legal-consent-required"]');
+    var legalWrap = form.querySelector(".legal-consent");
+    if (!legal || !legal.checked) {
+      if (legalWrap) legalWrap.classList.add("error");
+      valid = false;
+    } else if (legalWrap) {
+      legalWrap.classList.remove("error");
+    }
+
+    return valid;
+  }
+
+  function fixPresupuestoEmails() {
+    if (location.pathname.indexOf("/pide-tu-presupuesto") === -1) return;
+    var links = doc.querySelectorAll('a[href*="info@cvpalmanord.es"]');
+    for (var i = 0; i < links.length; i += 1) {
+      links[i].href = "mailto:cvpalmanord@cvpalmanord.es";
+      if (links[i].textContent.indexOf("info@") !== -1) {
+        links[i].textContent = "cvpalmanord@cvpalmanord.es";
+      }
+    }
+  }
+
+  function setupQuoteForm() {
+    var form = doc.getElementById("quote-form");
+    if (!form) return;
+
+    form.addEventListener(
+      "submit",
+      function (ev) {
+        handleSecureFormSubmit(ev, form);
+      },
+      true
+    );
+
+    var retryBtn = doc.getElementById("quote-retry-btn");
+    if (retryBtn) {
+      retryBtn.addEventListener("click", function () {
+        showQuotePanel("quote-panel-form");
+      });
+    }
+
+    var inputs = form.querySelectorAll(".quote-input");
+    for (var i = 0; i < inputs.length; i += 1) {
+      inputs[i].addEventListener("input", function (ev) {
+        var wrap = ev.target.closest(".quote-field");
+        if (wrap) {
+          wrap.classList.remove("has-error");
+          ev.target.classList.remove("is-invalid");
+        }
+      });
+    }
+
+    var legalRequired = form.querySelector('input[name="legal-consent-required"]');
+    if (legalRequired) {
+      legalRequired.addEventListener("change", function () {
+        var legalWrap = form.querySelector(".legal-consent");
+        if (legalRequired.checked && legalWrap) legalWrap.classList.remove("error");
+      });
+    }
+  }
+
+  function handleSecureFormSubmit(ev, form) {
+    ev.preventDefault();
+    ev.stopPropagation();
+
+    var honeypot = form.querySelector('input[name="website"]');
+    if (honeypot && honeypot.value) return;
+
+    if (form.classList.contains("quote-form-modern") && !validateQuoteForm(form)) {
+      showQuoteErrorPage("Revisa los campos marcados e intentalo de nuevo.");
+      return;
+    }
+
+    showQuoteLoading(form, true);
+
+    var marketing = form.querySelector('input[name="legal-consent-marketing"]');
+    var payload = {
+      name: getFieldValue(form, ["your-name", "nombre"]),
+      email: getFieldValue(form, ["your-email", "email"]),
+      phone: getFieldValue(form, ["your-phone", "telefono"]),
+      animalName: getFieldValue(form, ["your-animal-name"]),
+      animalRace: getFieldValue(form, ["your-animal-race"]),
+      animalWeight: getFieldValue(form, ["your-animal-weight"]),
+      message: getFieldValue(form, ["your-message", "mensaje"]),
+      marketing: !!(marketing && marketing.checked),
+      source: window.location.pathname || "/"
+    };
+
+    fetch("/api/contact.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(payload),
+      credentials: "same-origin"
+    })
+      .then(function (response) {
+        return response.text().then(function (text) {
+          var data = null;
+          try {
+            data = text ? JSON.parse(text) : null;
+          } catch (e) {
+            data = null;
+          }
+          return { response: response, data: data };
+        });
+      })
+      .then(function (result) {
+        if (result.response.ok && result.data && result.data.ok) {
+          form.reset();
+          var required = form.querySelector('input[name="legal-consent-required"]');
+          if (required) required.checked = false;
+          setFormStatus(form, "ok", "");
+          return;
+        }
+        var err = result.data && result.data.error ? result.data.error : "unknown";
+        if (err === "mail_failed") {
+          setFormStatus(
+            form,
+            "error",
+            "No se pudo enviar el correo desde el servidor. Llama al +34 655 214 080 o escribe a cvpalmanord@cvpalmanord.es."
+          );
+          return;
+        }
+        if (err === "form_not_configured") {
+          setFormStatus(
+            form,
+            "error",
+            "Error de configuracion en el servidor. Contacta con la clinica por telefono o email."
+          );
+          return;
+        }
+        if (err === "rate_limited") {
+          setFormStatus(form, "error", "Has enviado demasiadas solicitudes. Espera unos minutos e intentalo de nuevo.");
+          return;
+        }
+        setFormStatus(
+          form,
+          "error",
+          "No se pudo completar el envio (codigo " + result.response.status + "). Intentalo de nuevo o contactanos por telefono."
+        );
+      })
+      .catch(function () {
+        setFormStatus(
+          form,
+          "error",
+          "Error de conexion. Comprueba tu internet o llama al +34 655 214 080."
+        );
+      });
+  }
+
   function setupFormConsent() {
     var forms = doc.querySelectorAll("form.wpcf7-form");
     for (var i = 0; i < forms.length; i += 1) {
       var form = forms[i];
+      if (form.id === "quote-form") continue;
       if (form.querySelector(".legal-consent")) continue;
 
       var box = doc.createElement("div");
@@ -59,7 +327,8 @@
         "Finalidad: gestionar tu consulta y/o solicitud de cita o presupuesto.<br>" +
         "Legitimación: consentimiento del interesado.<br>" +
         "Destinatarios: no se cederan datos a terceros, salvo obligacion legal.<br>" +
-        'Derechos: acceso, rectificacion, supresion y otros, segun informacion adicional en el <a href="/legal/aviso-legal-y-privacidad/" target="_blank" rel="noopener">Aviso legal y politica de privacidad</a>.</p>' +
+        'Derechos: acceso, rectificacion, supresion y otros, segun informacion adicional en el <a href="/legal/aviso-legal-y-privacidad/" target="_blank" rel="noopener noreferrer">Aviso legal y politica de privacidad</a>.</p>' +
+        '<label class="hp-field" aria-hidden="true"><span>Deja este campo vacio</span><input type="text" name="website" tabindex="-1" autocomplete="off"></label>' +
         '<label><input type="checkbox" name="legal-consent-required" value="1"> <span>He leido y acepto las condiciones (aviso legal y politica de privacidad).</span></label>' +
         '<label><input type="checkbox" name="legal-consent-marketing" value="1"> <span>Acepto recibir informacion comercial sobre promociones, productos y servicios.</span></label>' +
         '<div class="legal-consent-error">No puedes enviar la solicitud sin aceptar el aviso legal y politica de privacidad.</div>';
@@ -71,14 +340,30 @@
         form.appendChild(box);
       }
 
-      form.addEventListener("submit", function (ev) {
-        var wrap = ev.currentTarget.querySelector(".legal-consent");
-        var required = ev.currentTarget.querySelector('input[name="legal-consent-required"]');
-        if (!required || !required.checked) {
-          ev.preventDefault();
-          if (wrap) wrap.classList.add("error");
-        }
-      });
+      form.addEventListener(
+        "submit",
+        function (ev) {
+          var wrap = ev.currentTarget.querySelector(".legal-consent");
+          var required = ev.currentTarget.querySelector('input[name="legal-consent-required"]');
+          if (form.classList.contains("quote-form-modern")) {
+            if (!validateQuoteForm(form)) {
+              ev.preventDefault();
+              ev.stopPropagation();
+              showQuoteErrorPage("Revisa los campos marcados e intentalo de nuevo.");
+              return;
+            }
+          } else if (!required || !required.checked) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            if (wrap) wrap.classList.add("error");
+            return;
+          }
+          if (form.classList.contains("wpcf7-form")) {
+            handleSecureFormSubmit(ev, form);
+          }
+        },
+        true
+      );
 
       var requiredInput = form.querySelector('input[name="legal-consent-required"]');
       if (requiredInput) {
@@ -123,9 +408,20 @@
     doc.head.appendChild(s);
   }
 
+  function notifyConsentUpdated(consent) {
+    try {
+      window.dispatchEvent(
+        new CustomEvent("cvpalmanord:consent-updated", { detail: consent || null })
+      );
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
   function applyConsent(consent) {
     if (!consent) return;
     if (consent.analytics) loadGoogleAnalytics();
+    notifyConsentUpdated(consent);
   }
 
   function renderCookieUI() {
@@ -202,6 +498,7 @@
       } else if (action === "reject-all") {
         var reject = { essential: true, analytics: false, updatedAt: new Date().toISOString() };
         saveConsent(reject);
+        notifyConsentUpdated(reject);
         closeAll();
       } else if (action === "open-panel") {
         showPanel();
@@ -307,6 +604,8 @@
   }
 
   ensureLegalLinks();
+  fixPresupuestoEmails();
+  setupQuoteForm();
   setupFormConsent();
   renderCookieUI();
   setupProgressFallback();

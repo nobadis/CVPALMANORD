@@ -3,10 +3,16 @@
   "version": "1.0.0",
   "private": true,
   "description": "Clon estatico de cvpalmanord.es listo para Railway",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
-    "start": "sh -c 'serve site -l ${PORT:-3000}'"
+    "start": "node server.js",
+    "start:legacy": "sh -c 'serve site -l ${PORT:-3000}'",
+    "audit:deps": "npm audit --omit=dev"
   },
   "dependencies": {
-    "serve": "latest"
+    "serve-handler": "6.1.7"
   }
 }
+
