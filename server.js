@@ -10,10 +10,23 @@ const PORT = Number.parseInt(process.env.PORT || "3000", 10) || 3000;
 const HOST = "0.0.0.0";
 
 const CLARITY_PROJECT_ID = (process.env.CLARITY_PROJECT_ID || "").trim();
-// Formspree → cvpalmanord@cvpalmanord.es (override opcional con FORM_ENDPOINT)
-const FORM_ENDPOINT = (
-  process.env.FORM_ENDPOINT || "https://formspree.io/f/meaogaoa"
+
+// Resend: unica via fiable desde Railway para From=dominio propio + no-spam.
+const RESEND_API_KEY = String(process.env.RESEND_API_KEY || "").trim();
+const MAIL_TO = (process.env.MAIL_TO || "cvpalmanord@cvpalmanord.es").trim();
+const MAIL_FROM_EMAIL = (
+  process.env.MAIL_FROM || "cvpalmanord@cvpalmanord.es"
 ).trim();
+const MAIL_FROM_NAME = (
+  process.env.MAIL_FROM_NAME || "Clinica Veterinaria Palmanord"
+).trim();
+const SITE_URL = (process.env.SITE_URL || "https://cvpalmanord.es").replace(
+  /\/$/,
+  ""
+);
+const SEND_CLIENT_COPY =
+  String(process.env.SEND_CLIENT_COPY || "true").trim().toLowerCase() !==
+  "false";
 
 const MAX_BODY_BYTES = 16 * 1024;
 const BLOCKED_PATH =
@@ -71,14 +84,14 @@ const SERVE_CONFIG = {
   ]
 };
 
-function isFormConfigured() {
-  if (!FORM_ENDPOINT) return false;
-  try {
-    var u = new URL(FORM_ENDPOINT);
-    return u.protocol === "https:";
-  } catch (e) {
-    return false;
-  }
+function isMailConfigured() {
+  return RESEND_API_KEY.length > 10;
+}
+
+function fromHeader() {
+  return (
+    '"' + MAIL_FROM_NAME.replace(/"/g, "") + '" <' + MAIL_FROM_EMAIL + ">"
+  );
 }
 
 function applySecurityHeaders(res) {
@@ -142,6 +155,15 @@ function sanitizeText(value, maxLen) {
     .slice(0, maxLen);
 }
 
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) && value.length <= 254;
 }
@@ -191,48 +213,163 @@ function validateContactPayload(body) {
   return { ok: true, payload: payload };
 }
 
-async function forwardToFormspree(payload) {
-  if (!isFormConfigured()) {
-    return { ok: false, status: 503, error: "form_not_configured" };
-  }
+function buildStaffText(payload) {
+  return [
+    "Nueva solicitud de presupuesto web",
+    "",
+    "Nombre: " + payload.name,
+    "Email: " + payload.email,
+    "Telefono: " + payload.phone,
+    "Mascota: " + payload.animalName,
+    "Especie/raza: " + payload.animalRace,
+    "Peso: " + payload.animalWeight,
+    "Mensaje: " + (payload.message || "(sin mensaje)"),
+    "Marketing: " + (payload.marketing ? "Si" : "No"),
+    "Origen: " + payload.source,
+    "Fecha: " + new Date().toISOString()
+  ].join("\n");
+}
 
-  var response;
+function buildStaffHtml(payload) {
+  function row(label, value) {
+    return (
+      "<tr><td style=\"padding:8px 0;color:#64748b;width:140px;\">" +
+      escapeHtml(label) +
+      '</td><td style="padding:8px 0;color:#263246;"><strong>' +
+      escapeHtml(value) +
+      "</strong></td></tr>"
+    );
+  }
+  return (
+    '<!DOCTYPE html><html lang="es"><body style="font-family:Arial,sans-serif;background:#f7f9fb;color:#263246;padding:20px;">' +
+    '<table width="100%" style="max-width:560px;margin:0 auto;background:#fff;border:1px solid #e5e5e5;">' +
+    '<tr><td style="background:#263246;color:#fff;padding:16px 20px;font-size:18px;">Nueva solicitud de presupuesto</td></tr>' +
+    '<tr><td style="padding:20px;"><table width="100%">' +
+    row("Nombre", payload.name) +
+    row("Email", payload.email) +
+    row("Telefono", payload.phone) +
+    row("Mascota", payload.animalName) +
+    row("Especie/raza", payload.animalRace) +
+    row("Peso", payload.animalWeight) +
+    row("Marketing", payload.marketing ? "Si" : "No") +
+    row("Origen", payload.source) +
+    "</table>" +
+    '<p style="margin-top:16px;"><strong>Mensaje</strong><br>' +
+    (payload.message
+      ? escapeHtml(payload.message).replace(/\n/g, "<br>")
+      : "(sin mensaje)") +
+    "</p>" +
+    '<p style="font-size:12px;color:#94a3b8;margin-top:20px;">Responde a este correo para contactar al cliente (Reply-To).</p>' +
+    "</td></tr></table></body></html>"
+  );
+}
+
+function buildClientHtml(payload) {
+  var logo =
+    SITE_URL + "/wp-content/uploads/2021/11/logo_palmanord_blusa.png";
+  var msg = payload.message
+    ? escapeHtml(payload.message).replace(/\n/g, "<br>")
+    : "Sin mensaje adicional";
+  return (
+    '<!DOCTYPE html><html lang="es"><body style="font-family:Arial,sans-serif;background:#f7f9fb;color:#263246;padding:20px;">' +
+    '<table width="100%" style="max-width:560px;margin:0 auto;background:#fff;border:1px solid #e5e5e5;"><tr><td style="background:#263246;padding:20px;text-align:center;">' +
+    '<img src="' +
+    escapeHtml(logo) +
+    '" alt="Palmanord" width="100" style="display:block;margin:0 auto 8px;"></td></tr>' +
+    '<tr><td style="padding:24px;"><h1 style="margin:0 0 12px;font-size:22px;">Gracias, ' +
+    escapeHtml(payload.name) +
+    "</h1>" +
+    "<p>Hemos recibido tu solicitud. <strong>Te contactaremos muy pronto</strong>.</p>" +
+    '<p style="font-size:14px;color:#64748b;">Urgencias: <a href="tel:+34655214080">+34 655 214 080</a></p>' +
+    '<hr style="border:none;border-top:1px solid #e5e5e5;margin:16px 0;">' +
+    "<p><strong>Resumen:</strong><br>Telefono: " +
+    escapeHtml(payload.phone) +
+    "<br>Mascota: " +
+    escapeHtml(payload.animalName) +
+    " (" +
+    escapeHtml(payload.animalRace) +
+    ", " +
+    escapeHtml(payload.animalWeight) +
+    ")<br>" +
+    msg +
+    "</p>" +
+    '<p style="text-align:center;margin-top:20px;"><a href="' +
+    escapeHtml(SITE_URL) +
+    '" style="background:#d83a3a;color:#fff;padding:10px 18px;text-decoration:none;border-radius:6px;">Visitar web</a></p>' +
+    "</td></tr></table></body></html>"
+  );
+}
+
+async function resendSend(mail) {
+  var response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: "Bearer " + RESEND_API_KEY,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(mail),
+    signal: AbortSignal.timeout(15000)
+  });
+
+  var bodyText = "";
   try {
-    response = await fetch(FORM_ENDPOINT, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json"
-      },
-      body: JSON.stringify({
-        _subject: "[Presupuesto web] " + payload.name,
-        name: payload.name,
-        email: payload.email,
-        phone: payload.phone,
-        animalName: payload.animalName,
-        animalRace: payload.animalRace,
-        animalWeight: payload.animalWeight,
-        message: payload.message || "(sin mensaje)",
-        marketing: payload.marketing ? "Si" : "No",
-        source: payload.source,
-        _replyto: payload.email
-      }),
-      signal: AbortSignal.timeout(15000)
-    });
+    bodyText = await response.text();
   } catch (e) {
-    console.error("Formspree network error:", e && e.message ? e.message : e);
-    return { ok: false, status: 502, error: "mail_failed" };
+    bodyText = "";
   }
 
   if (!response.ok) {
-    var detail = "";
-    try {
-      detail = await response.text();
-    } catch (e) {
-      detail = "";
+    console.error("Resend error:", response.status, bodyText.slice(0, 400));
+    var lower = bodyText.toLowerCase();
+    if (
+      response.status === 403 ||
+      lower.indexOf("domain") !== -1 ||
+      lower.indexOf("not verified") !== -1
+    ) {
+      return { ok: false, error: "domain_not_verified" };
     }
-    console.error("Formspree rejected:", response.status, detail.slice(0, 300));
-    return { ok: false, status: 502, error: "mail_failed" };
+    return { ok: false, error: "mail_failed" };
+  }
+  return { ok: true };
+}
+
+async function sendContactEmail(payload) {
+  if (!isMailConfigured()) {
+    return { ok: false, status: 503, error: "form_not_configured" };
+  }
+
+  var staff = await resendSend({
+    from: fromHeader(),
+    to: [MAIL_TO],
+    reply_to: payload.email,
+    subject: "[Presupuesto web] " + payload.name,
+    text: buildStaffText(payload),
+    html: buildStaffHtml(payload)
+  });
+
+  if (!staff.ok) {
+    return {
+      ok: false,
+      status: staff.error === "domain_not_verified" ? 503 : 502,
+      error: staff.error || "mail_failed"
+    };
+  }
+
+  if (SEND_CLIENT_COPY) {
+    var client = await resendSend({
+      from: fromHeader(),
+      to: [payload.email],
+      reply_to: MAIL_TO,
+      subject: "Gracias por contactar - Clinica Veterinaria Palmanord",
+      text:
+        "Gracias, " +
+        payload.name +
+        ".\n\nHemos recibido tu solicitud y te contactaremos muy pronto.\nUrgencias: +34 655 214 080\n",
+      html: buildClientHtml(payload)
+    });
+    if (!client.ok) {
+      console.error("Resend client copy failed:", client.error);
+    }
   }
 
   return { ok: true, status: 200 };
@@ -251,7 +388,14 @@ async function handleContactApi(req, res) {
 
   if (req.method === "GET") {
     res.writeHead(200);
-    res.end(JSON.stringify({ ok: true, configured: isFormConfigured() }));
+    res.end(
+      JSON.stringify({
+        ok: true,
+        configured: isMailConfigured(),
+        from: MAIL_FROM_EMAIL,
+        to: MAIL_TO
+      })
+    );
     return;
   }
 
@@ -286,7 +430,7 @@ async function handleContactApi(req, res) {
     return;
   }
 
-  var result = await forwardToFormspree(validated.payload);
+  var result = await sendContactEmail(validated.payload);
   res.writeHead(result.status || (result.ok ? 200 : 500));
   res.end(JSON.stringify({ ok: result.ok, error: result.error || null }));
 }
@@ -319,7 +463,9 @@ const server = http.createServer(async function (req, res) {
     res.end(
       JSON.stringify({
         ok: true,
-        formConfigured: isFormConfigured()
+        formConfigured: isMailConfigured(),
+        mailFrom: MAIL_FROM_EMAIL,
+        mailTo: MAIL_TO
       })
     );
     return;
@@ -343,12 +489,14 @@ server.listen(PORT, HOST, function () {
   console.log(
     "CV Palmanord static server listening on http://" + HOST + ":" + PORT
   );
-  if (!isFormConfigured()) {
+  if (!isMailConfigured()) {
     console.warn(
-      "FORM_ENDPOINT invalida: el formulario no enviara solicitudes."
+      "RESEND_API_KEY no configurada: el formulario no enviara correo hasta definirla en Railway (dominio verificado en Resend)."
     );
   } else {
-    console.log("Formulario listo via Formspree");
+    console.log(
+      "Formulario listo via Resend: " + MAIL_FROM_EMAIL + " -> " + MAIL_TO
+    );
   }
   if (!CLARITY_PROJECT_ID) {
     console.warn(

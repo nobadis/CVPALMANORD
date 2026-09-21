@@ -25,7 +25,7 @@ El sitio se sirve en `http://localhost:3000` (o en el puerto definido por `PORT`
 2. Crea un nuevo proyecto en Railway y conecta ese repositorio.
 3. Railway usa Nixpacks (Node 20), detecta `package.json` y arranca con `npm start`.
 4. Healthcheck automatico en `/api/health` (definido en `railway.toml`).
-5. Configura variables de entorno (ver tabla abajo). El formulario ya tiene Formspree por defecto. Opcional: `CLARITY_PROJECT_ID`.
+5. Configura variables de entorno (ver tabla abajo). Para el formulario: `RESEND_API_KEY` + dominio verificado en Resend. Opcional: `CLARITY_PROJECT_ID`.
 
 El servidor escucha en `0.0.0.0:$PORT` (requerido por Railway).
 
@@ -49,10 +49,19 @@ Copia `.env.example` y configura:
 | Variable | Obligatoria | Descripcion |
 | --- | --- | --- |
 | `PORT` | No (Railway la define) | Puerto HTTP del servidor |
-| `FORM_ENDPOINT` | No | Default `https://formspree.io/f/meaogaoa` (Formspree → `cvpalmanord@cvpalmanord.es`) |
+| `RESEND_API_KEY` | Si (formulario) | API key de [Resend](https://resend.com) (`re_…`) |
+| `MAIL_TO` / `MAIL_FROM` | No | Default `cvpalmanord@cvpalmanord.es` |
 | `CLARITY_PROJECT_ID` | No | Project ID de Microsoft Clarity (`…/tag/XXXX`) |
 
-El SMTP de Dinahosting **no es alcanzable desde Railway**. El formulario usa Formspree por defecto.
+**Por que Resend y no Formspree/SMTP Dinahosting:** Formspree no puede remitir como `cvpalmanord@…` (va a spam). El SMTP de Dinahosting no es alcanzable desde Railway. Resend envia por HTTPS con From del dominio (SPF/DKIM) y buena entregabilidad.
+
+### Setup correo (5 minutos)
+
+1. Cuenta en [resend.com](https://resend.com)
+2. **Domains** → Add `cvpalmanord.es` → anade en Dinahosting DNS **exactamente** los registros que Resend muestra (DKIM/SPF). **No borres** el MX de correo entrante de Dinahosting.
+3. Espera a que el dominio pase a **Verified**
+4. **API Keys** → Create → en Railway: `RESEND_API_KEY=re_…`
+5. Redeploy. `/api/health` debe mostrar `formConfigured: true`
 
 ### Comprobaciones recomendadas tras desplegar
 
@@ -124,7 +133,7 @@ npx @railway/cli up
 7. Prueba funcional final:
    - Navegacion completa
    - `/api/clarity-config` (con `CLARITY_PROJECT_ID` → ID; sin ella → `null`)
-   - `/api/health` → `formConfigured: true` cuando `FORM_ENDPOINT` esta definida
+   - `/api/health` → `formConfigured: true` cuando `RESEND_API_KEY` esta definida
    - Formularios (incluyendo consentimiento RGPD)
    - Banner y configuracion de cookies
    - Paginas legales y enlaces de footer

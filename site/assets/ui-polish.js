@@ -277,7 +277,7 @@
           return;
         }
         var err = result.data && result.data.error ? result.data.error : "unknown";
-        if (err === "mail_failed") {
+        if (err === "mail_failed" || err === "domain_not_verified") {
           setFormStatus(
             form,
             "error",
