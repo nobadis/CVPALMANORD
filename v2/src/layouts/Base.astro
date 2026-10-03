@@ -3,7 +3,7 @@ import "../styles/global.css";
 import { ClientRouter } from "astro:transitions";
 import { Image } from "astro:assets";
 import Icon from "../components/Icon.astro";
-import { clinic, nav, schedule } from "../data/site";
+import { clinic, nav, schedule, services } from "../data/site";
 import { u } from "../data/url";
 import logoWhite from "../assets/img/logo-white.png";
 import logoBrand from "../assets/img/logo-brand.png";
@@ -28,6 +28,63 @@ const path = Astro.url.pathname.replace(/^\/v2/, "") || "/";
 const isActive = (href: string) => (href === "/" ? path === "/" : path.startsWith(href));
 const fullTitle = path === "/" ? `${clinic.name} · Palma` : `${title} · ${clinic.short}`;
 const scheduleJson = JSON.stringify(schedule);
+
+const ORIGIN = "https://cvpalmanord.es";
+const indexable = import.meta.env.PUBLIC_INDEXABLE === "true";
+const canonical = new URL(Astro.url.pathname, ORIGIN).href;
+const ogImage = ORIGIN + u("/icon-512.png");
+const dayEn = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const jsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": ["VeterinaryCare", "LocalBusiness"],
+      "@id": ORIGIN + "/#clinic",
+      name: clinic.name,
+      url: ORIGIN + "/",
+      description,
+      image: ogImage,
+      logo: ogImage,
+      telephone: "+34971452592",
+      email: clinic.email,
+      foundingDate: String(clinic.since),
+      areaServed: "Palma",
+      knowsLanguage: ["es", "ca"],
+      hasMap: clinic.mapsLink,
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: clinic.address,
+        postalCode: "07011",
+        addressLocality: "Palma",
+        addressRegion: "Illes Balears",
+        addressCountry: "ES"
+      },
+      openingHoursSpecification: schedule
+        .filter((d) => d.open)
+        .map((d) => ({
+          "@type": "OpeningHoursSpecification",
+          dayOfWeek: dayEn[d.dow],
+          opens: d.open,
+          closes: d.close
+        })),
+      makesOffer: services.map((sv) => ({
+        "@type": "Offer",
+        itemOffered: { "@type": "Service", name: sv.title, description: sv.lead }
+      }))
+    },
+    { "@type": "WebSite", "@id": ORIGIN + "/#website", url: ORIGIN + "/", name: clinic.name, inLanguage: "es" },
+    {
+      "@type": "WebPage",
+      "@id": canonical + "#page",
+      url: canonical,
+      name: fullTitle,
+      description,
+      inLanguage: "es",
+      isPartOf: { "@id": ORIGIN + "/#website" },
+      about: { "@id": ORIGIN + "/#clinic" }
+    }
+  ]
+});
 ---
 
 <!doctype html>
@@ -35,16 +92,31 @@ const scheduleJson = JSON.stringify(schedule);
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- Version de pruebas: fuera de buscadores hasta que salga a produccion -->
-    <meta name="robots" content="noindex, nofollow" />
+    <!-- Version de pruebas: fuera de buscadores hasta que salga a produccion
+         (al publicar: PUBLIC_INDEXABLE=true en el build y quitar X-Robots-Tag en server.js) -->
+    <meta name="robots" content={indexable ? "index, follow, max-image-preview:large, max-snippet:-1" : "noindex, nofollow"} />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_ES" />
+    <meta property="og:site_name" content={clinic.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    <script type="application/ld+json" set:html={jsonLd} />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <meta name="theme-color" content="#3b476b" />
     <link rel="preload" href={fontBody} as="font" type="font/woff2" crossorigin />
     <link rel="preload" href={fontDisplay} as="font" type="font/woff2" crossorigin />
     <link rel="preload" href={fontDigits} as="font" type="font/woff2" crossorigin />
-    <link rel="icon" type="image/png" href={u("/favicon.png")} />
-    <link rel="apple-touch-icon" href={u("/favicon.png")} />
+    <link rel="icon" href={u("/favicon.ico")} sizes="48x48" />
+    <link rel="icon" type="image/png" href={u("/favicon.png")} sizes="192x192" />
+    <link rel="apple-touch-icon" href={u("/apple-touch-icon.png")} />
     <script is:inline>
       document.documentElement.classList.add("js");
     </script>
