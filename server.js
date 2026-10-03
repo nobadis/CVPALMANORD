@@ -7,8 +7,9 @@ const zlib = require("zlib");
 const { URL } = require("url");
 const serveHandler = require("serve-handler");
 
-const SITE_DIR = path.join(__dirname, "site");
-const V2_DIR = path.join(SITE_DIR, "v2");
+// Sitio Astro compilado (web/ -> dist/)
+const SITE_DIR = path.join(__dirname, "dist");
+const V2_DIR = SITE_DIR;
 const PORT = Number.parseInt(process.env.PORT || "3000", 10) || 3000;
 const HOST = "0.0.0.0";
 
@@ -83,7 +84,14 @@ const SERVE_CONFIG = {
     { source: "/wp-admin", destination: "/", permanent: false },
     { source: "/wp-admin/**", destination: "/", permanent: false },
     { source: "/wp-login.php", destination: "/", permanent: false },
-    { source: "/xmlrpc.php", destination: "/", permanent: false }
+    { source: "/xmlrpc.php", destination: "/", permanent: false },
+    // URLs de la web antigua y de la antigua /v2
+    { source: "/contact", destination: "/contacto/", permanent: true },
+    { source: "/contact/", destination: "/contacto/", permanent: true },
+    { source: "/team", destination: "/equipo/", permanent: true },
+    { source: "/team/", destination: "/equipo/", permanent: true },
+    { source: "/v2", destination: "/", permanent: true },
+    { source: "/v2/**", destination: "/:splat", permanent: true }
   ]
 };
 
@@ -521,7 +529,7 @@ async function serveV2(req, res, pathname) {
 
   var rel;
   try {
-    rel = decodeURIComponent(pathname.slice("/v2".length)) || "/";
+    rel = decodeURIComponent(pathname) || "/";
   } catch (e) {
     return false;
   }
@@ -547,11 +555,10 @@ async function serveV2(req, res, pathname) {
   if (!stat.isFile()) return false;
 
   var ext = path.extname(file).toLowerCase();
-  var immutable = pathname.indexOf("/v2/_astro/") === 0;
+  var immutable = pathname.indexOf("/_astro/") === 0;
   var etag = 'W/"' + stat.size.toString(16) + "-" + Math.floor(stat.mtimeMs).toString(16) + '"';
 
   applySecurityHeaders(res);
-  res.setHeader("X-Robots-Tag", "noindex, nofollow");
   res.setHeader("Content-Type", V2_TYPES[ext] || "application/octet-stream");
   res.setHeader(
     "Cache-Control",
@@ -578,6 +585,14 @@ async function serveV2(req, res, pathname) {
   res.writeHead(200);
   res.end(req.method === "HEAD" ? undefined : body);
   return true;
+}
+
+function LEGACY_REDIRECTS(pathname) {
+  if (pathname === "/v2" || pathname.indexOf("/v2/") === 0) {
+    return pathname.slice(3) || "/";
+  }
+  var map = { "/contact": "/contacto/", "/contact/": "/contacto/", "/team": "/equipo/", "/team/": "/equipo/" };
+  return map[pathname] || null;
 }
 
 const server = http.createServer(async function (req, res) {
@@ -627,11 +642,16 @@ const server = http.createServer(async function (req, res) {
     return;
   }
 
-  // v2 en pruebas: fuera de buscadores hasta publicarla
-  if (pathname === "/v2" || pathname.indexOf("/v2/") === 0) {
-    res.setHeader("X-Robots-Tag", "noindex, nofollow");
-    if (await serveV2(req, res, pathname)) return;
+  // Redirecciones de URLs antiguas (/contact, /team, /v2/...)
+  var legacy = LEGACY_REDIRECTS(pathname);
+  if (legacy) {
+    applySecurityHeaders(res);
+    res.writeHead(301, { Location: legacy });
+    res.end();
+    return;
   }
+
+  if (await serveV2(req, res, pathname)) return;
 
   await serveHandler(req, res, SERVE_CONFIG);
 });

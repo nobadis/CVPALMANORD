@@ -1,0 +1,5 @@
+Contact: mailto:cvpalmanord@cvpalmanord.es
+Preferred-Languages: es, ca
+Canonical: https://cvpalmanord.es/.well-known/security.txt
+Policy: https://cvpalmanord.es/legal/aviso-legal-y-privacidad/
+Expires: 2027-05-24T00:00:00.000Z

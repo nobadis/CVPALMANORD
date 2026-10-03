@@ -149,15 +149,17 @@ python -m pip install beautifulsoup4 requests
 python clone_site.py
 ```
 
-## Nueva web (v2, en pruebas)
+## Web (Astro)
 
-Rediseno en Astro dentro de `v2/`. Se compila como estatico a `site/v2/`, asi que el mismo `server.js` la sirve en `/v2/` sin tocar la web actual. Lleva `noindex` (meta + cabecera `X-Robots-Tag`) para que no salga en buscadores.
+El sitio es el rediseno en Astro, en `web/`. Se compila como estatico a `dist/` (commitear el resultado), que es lo que sirve `server.js` en la raiz. Las URLs antiguas (`/contact`, `/team`, `/v2/...`) redirigen con 301.
 
 ```bash
-cd v2
+cd web
 npm install
-npm run dev     # desarrollo en http://localhost:4321/v2/
-npm run build   # regenera site/v2/ (commitear el resultado)
+npm run dev     # desarrollo en http://localhost:4321/
+npm run build   # regenera ../dist/
 ```
 
-El formulario de presupuesto usa el mismo `/api/contact` (origen `v2/...`).
+El formulario de presupuesto envia a `/api/contact` (Resend, ver variables arriba). `web/public/` contiene `robots.txt`, `sitemap.xml`, `llms.txt`, las paginas legales y `.well-known/`.
+
+> `site/` (clon antiguo de WordPress) ya no se sirve; queda solo como referencia y puede borrarse.

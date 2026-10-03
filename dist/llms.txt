@@ -1,0 +1,16 @@
+# Palmanord Clínica Veterinaria
+
+> Clínica veterinaria de barrio en Palma (Mallorca) desde 2006. Atiende perros, gatos y otras mascotas con consulta, cirugía, laboratorio propio y hospitalización. Cita previa por teléfono o web.
+
+- Dirección: Carrer dels Ocells, 36, 07011 Palma, Illes Balears
+- Teléfono: 971 45 25 92 (urgencias 24h solo para clientes: 655 214 080)
+- Email: cvpalmanord@cvpalmanord.es
+- Horario: lunes a viernes, 10:00–19:00; sábados y domingos cerrado
+
+## Páginas
+- [Inicio](https://cvpalmanord.es/): presentación de la clínica
+- [Servicios](https://cvpalmanord.es/servicios/): consulta, cirugía, vacunación, microchip, desparasitación, higiene dental, hospitalización, laboratorio, tienda
+- [Instalaciones](https://cvpalmanord.es/instalaciones/): quirófano, laboratorio y salas
+- [Equipo](https://cvpalmanord.es/equipo/): veterinarios y auxiliares
+- [Contacto](https://cvpalmanord.es/contacto/): mapa, horario y formulario
+- [Cita o presupuesto](https://cvpalmanord.es/pide-tu-presupuesto/)

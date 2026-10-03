@@ -1,0 +1,823 @@
+---
+import Base from "../layouts/Base.astro";
+import Icon from "../components/Icon.astro";
+import { clinic } from "../data/site";
+import { u } from "../data/url";
+
+const species = [
+  { v: "Perro", e: "🐶" },
+  { v: "Gato", e: "🐱" },
+  { v: "Conejo", e: "🐰" },
+  { v: "Otro", e: "🐾" }
+];
+const weights = ["Menos de 5 kg", "5 – 15 kg", "15 – 30 kg", "Más de 30 kg", "No lo sé"];
+---
+
+<Base title="Pide cita previa" description="Pide cita previa o presupuesto a la Clínica Veterinaria Palmanord en menos de un minuto. Te llamamos nosotros.">
+  <section class="quote">
+    <div class="wrap quote-grid">
+      <aside class="quote-side">
+        <p class="eyebrow" data-reveal>Cita previa y presupuestos</p>
+        <h1 data-split>Cuéntanos y te llamamos.</h1>
+        <p class="lead" data-reveal style="--d:3">Tres pasos, menos de un minuto. Sin compromiso.</p>
+
+        <ol class="side-steps" data-reveal style="--d:4">
+          <li data-side-step="1" class="is-active"><span>1</span> Tu mascota</li>
+          <li data-side-step="2"><span>2</span> Tus datos</li>
+          <li data-side-step="3"><span>3</span> Enviar</li>
+        </ol>
+
+        <div class="side-contact" data-reveal style="--d:5">
+          <p>¿Prefieres llamar?</p>
+          <a class="btn btn-coral" href={clinic.phone.href}><Icon name="phone" /> {clinic.phone.label}</a>
+          <a class="link-arrow" href={`mailto:${clinic.email}`}><Icon name="mail" /> {clinic.email}</a>
+        </div>
+      </aside>
+
+      <div class="form-shell" data-reveal="scale" style="--d:2">
+        <div class="progress" aria-hidden="true"><span data-progress></span></div>
+
+        <form id="quote" novalidate data-form>
+          <!-- honeypot anti-bots -->
+          <div class="hp" aria-hidden="true">
+            <label>No rellenar <input type="text" name="website" tabindex="-1" autocomplete="off" /></label>
+          </div>
+
+          <!-- Paso 1 -->
+          <fieldset class="step is-active" data-step="1">
+            <legend><span class="step-n">Paso 1 de 3</span>Tu mascota</legend>
+
+            <div class="field">
+              <label for="animalName">¿Cómo se llama?</label>
+              <input id="animalName" name="animalName" type="text" required autocomplete="off" placeholder="Ej.: Luna" />
+              <p class="err">Dinos su nombre.</p>
+            </div>
+
+            <div class="field" role="radiogroup" aria-labelledby="sp-label">
+              <span class="label" id="sp-label">¿Qué es?</span>
+              <div class="pick pick-4">
+                {
+                  species.map((s, i) => (
+                    <label class="pick-item">
+                      <input type="radio" name="species" value={s.v} required={i === 0} />
+                      <span>
+                        <span class="emoji" aria-hidden="true">{s.e}</span>
+                        {s.v}
+                      </span>
+                    </label>
+                  ))
+                }
+              </div>
+              <p class="err">Elige una opción.</p>
+            </div>
+
+            <div class="field">
+              <label for="breed">Raza <span class="opt">(opcional)</span></label>
+              <input id="breed" name="breed" type="text" autocomplete="off" placeholder="Ej.: Labrador, mestizo…" />
+            </div>
+
+            <div class="field" role="radiogroup" aria-labelledby="w-label">
+              <span class="label" id="w-label">Peso aproximado</span>
+              <div class="pick pick-wrap">
+                {
+                  weights.map((w, i) => (
+                    <label class="pick-item pill">
+                      <input type="radio" name="animalWeight" value={w} required={i === 0} />
+                      <span>{w}</span>
+                    </label>
+                  ))
+                }
+              </div>
+              <p class="err">Elige un peso aproximado.</p>
+            </div>
+          </fieldset>
+
+          <!-- Paso 2 -->
+          <fieldset class="step" data-step="2">
+            <legend><span class="step-n">Paso 2 de 3</span>Tus datos</legend>
+            <div class="field">
+              <label for="name">Nombre y apellidos</label>
+              <input id="name" name="name" type="text" required autocomplete="name" />
+              <p class="err">Necesitamos tu nombre.</p>
+            </div>
+            <div class="field">
+              <label for="phone">Teléfono</label>
+              <input id="phone" name="phone" type="tel" required autocomplete="tel" inputmode="tel" placeholder="600 000 000" />
+              <p class="err">Escribe un teléfono válido (mínimo 9 cifras).</p>
+            </div>
+            <div class="field">
+              <label for="email">Correo electrónico</label>
+              <input id="email" name="email" type="email" required autocomplete="email" inputmode="email" placeholder="tu@correo.com" />
+              <p class="err">Revisa el correo electrónico.</p>
+            </div>
+          </fieldset>
+
+          <!-- Paso 3 -->
+          <fieldset class="step" data-step="3">
+            <legend><span class="step-n">Paso 3 de 3</span>¿Algo más?</legend>
+            <div class="field">
+              <label for="message">¿Qué le pasa o qué necesita? <span class="opt">(opcional)</span></label>
+              <textarea id="message" name="message" rows="5" placeholder="Ej.: Quiero vacunarle / está cojeando desde ayer…"></textarea>
+            </div>
+            <div class="summary" data-summary></div>
+            <label class="check">
+              <input type="checkbox" name="legal" required />
+              <span class="box" aria-hidden="true"><Icon name="check" size={18} /></span>
+              <span>He leído y acepto el <a href="/legal/aviso-legal-y-privacidad/" target="_blank" rel="noopener">aviso legal y la política de privacidad</a>.</span>
+            </label>
+            <p class="err err-legal">Debes aceptar el aviso legal para enviar.</p>
+            <label class="check">
+              <input type="checkbox" name="marketing" />
+              <span class="box" aria-hidden="true"><Icon name="check" size={18} /></span>
+              <span>Quiero recibir información comercial de la clínica (opcional).</span>
+            </label>
+            <p class="legal-mini">
+              Responsable: Clínica Veterinaria Palmanord. Usaremos tus datos solo para responder a tu solicitud.
+            </p>
+          </fieldset>
+
+          <div class="nav-row">
+            <button type="button" class="btn btn-ghost" data-prev hidden>Atrás</button>
+            <button type="button" class="btn" data-next>Siguiente <Icon name="arrow" class="icon-arrow" /></button>
+            <button type="submit" class="btn btn-coral" data-submit hidden>
+              <span class="btn-label">Enviar solicitud</span>
+              <span class="spinner" aria-hidden="true"></span>
+            </button>
+          </div>
+          <p class="form-error" data-form-error role="alert" hidden></p>
+        </form>
+
+        <div class="done" data-done hidden tabindex="-1">
+          <div class="done-badge"><Icon name="check" size={56} /></div>
+          <h2>¡Gracias por confiar en nosotros!</h2>
+          <p>Hemos recibido tu solicitud. <strong>Te llamaremos muy pronto</strong> para darte la mejor atención.</p>
+          <p class="muted">También te hemos enviado un correo de confirmación con el resumen.</p>
+          <a class="btn" href={u("/")}>Volver al inicio</a>
+          <div class="confetti" aria-hidden="true">
+            {Array.from({ length: 14 }).map((_, i) => <span style={`--i:${i}`}><Icon name="paw" size={22} /></span>)}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  document.addEventListener("astro:page-load", () => {
+    const form = document.querySelector<HTMLFormElement>("[data-form]");
+    if (!form) return;
+    const steps = Array.from(form.querySelectorAll<HTMLFieldSetElement>("[data-step]"));
+    const prev = form.querySelector<HTMLButtonElement>("[data-prev]")!;
+    const next = form.querySelector<HTMLButtonElement>("[data-next]")!;
+    const submit = form.querySelector<HTMLButtonElement>("[data-submit]")!;
+    const bar = document.querySelector<HTMLElement>("[data-progress]")!;
+    const errorBox = form.querySelector<HTMLElement>("[data-form-error]")!;
+    const done = document.querySelector<HTMLElement>("[data-done]")!;
+    let current = 0;
+
+    form.classList.add("is-stepped");
+
+    const val = (n: string) => {
+      const el = form.elements.namedItem(n) as any;
+      if (!el) return "";
+      if (el instanceof RadioNodeList) return String(el.value || "").trim();
+      return String(el.value || "").trim();
+    };
+
+    const fieldOf = (n: string) => (form.querySelector(`[name="${n}"]`) as HTMLElement).closest(".field") as HTMLElement | null;
+    const mark = (n: string, ok: boolean) => {
+      const f = fieldOf(n);
+      f?.classList.toggle("has-error", !ok);
+      return ok;
+    };
+
+    const validators: Record<number, () => boolean> = {
+      0: () => {
+        const a = mark("animalName", !!val("animalName"));
+        const b = mark("species", !!val("species"));
+        const c = mark("animalWeight", !!val("animalWeight"));
+        return a && b && c;
+      },
+      1: () => {
+        const a = mark("name", val("name").length >= 2);
+        const b = mark("phone", val("phone").replace(/\D/g, "").length >= 9);
+        const c = mark("email", /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val("email")));
+        return a && b && c;
+      },
+      2: () => {
+        const ok = (form.elements.namedItem("legal") as HTMLInputElement).checked;
+        form.querySelector(".err-legal")!.classList.toggle("show", !ok);
+        return ok;
+      }
+    };
+
+    const summary = () => {
+      const box = form.querySelector<HTMLElement>("[data-summary]")!;
+      const breed = val("breed");
+      box.innerHTML = "";
+      const rows: [string, string][] = [
+        ["Mascota", `${val("animalName")} · ${val("species")}${breed ? " (" + breed + ")" : ""} · ${val("animalWeight")}`],
+        ["Contacto", `${val("name")} · ${val("phone")}`]
+      ];
+      rows.forEach(([k, v]) => {
+        const p = document.createElement("p");
+        const s = document.createElement("strong");
+        s.textContent = k + ": ";
+        p.append(s, document.createTextNode(v));
+        box.append(p);
+      });
+    };
+
+    const go = (i: number, focus = true) => {
+      const dir = i > current ? "fwd" : "back";
+      steps[current].classList.remove("is-active");
+      current = i;
+      const s = steps[current];
+      s.dataset.dir = dir;
+      s.classList.add("is-active");
+      prev.hidden = current === 0;
+      next.hidden = current === steps.length - 1;
+      submit.hidden = current !== steps.length - 1;
+      bar.style.width = `${((current + 1) / steps.length) * 100}%`;
+      document.querySelectorAll("[data-side-step]").forEach((li, k) => {
+        li.classList.toggle("is-active", k === current);
+        li.classList.toggle("is-done", k < current);
+      });
+      if (current === steps.length - 1) summary();
+      if (focus) s.querySelector<HTMLElement>("input:not([type=hidden]):not([type=radio]), textarea, input[type=radio]")?.focus({ preventScroll: true });
+      const top = form.closest(".form-shell")!.getBoundingClientRect().top + window.scrollY - 110;
+      if (window.scrollY > top) window.scrollTo({ top, behavior: "smooth" });
+    };
+
+    next.addEventListener("click", () => {
+      if (validators[current]()) go(current + 1);
+      else form.querySelector<HTMLElement>(".step.is-active .has-error input")?.focus();
+    });
+    prev.addEventListener("click", () => go(current - 1));
+
+    // Enter avanza de paso en vez de enviar
+    form.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && (e.target as HTMLElement).tagName === "INPUT" && current < steps.length - 1) {
+        e.preventDefault();
+        next.click();
+      }
+    });
+    // Limpia el error al corregir
+    form.addEventListener("input", (e) => {
+      const f = (e.target as HTMLElement).closest(".field");
+      f?.classList.remove("has-error");
+      if ((e.target as HTMLInputElement).name === "legal") form.querySelector(".err-legal")!.classList.remove("show");
+    });
+    // Al elegir especie o peso, feedback inmediato
+    form.querySelectorAll<HTMLInputElement>(".pick input").forEach((r) =>
+      r.addEventListener("change", () => r.closest(".field")?.classList.remove("has-error"))
+    );
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if ((form.elements.namedItem("website") as HTMLInputElement).value) return;
+      for (let k = 0; k < steps.length; k++) {
+        if (!validators[k]()) {
+          go(k);
+          return;
+        }
+      }
+      errorBox.hidden = true;
+      form.classList.add("is-sending");
+      submit.disabled = true;
+
+      const breed = val("breed");
+      const payload = {
+        name: val("name"),
+        email: val("email"),
+        phone: val("phone"),
+        animalName: val("animalName"),
+        animalRace: breed ? `${val("species")} · ${breed}` : val("species"),
+        animalWeight: val("animalWeight"),
+        message: val("message"),
+        marketing: (form.elements.namedItem("marketing") as HTMLInputElement).checked,
+        source: "web" + location.pathname
+      };
+
+      try {
+        const res = await fetch("/api/contact", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify(payload),
+          credentials: "same-origin"
+        });
+        const data = await res.json().catch(() => null);
+        if (res.ok && data?.ok) {
+          form.hidden = true;
+          document.querySelector<HTMLElement>(".progress")!.hidden = true;
+          done.hidden = false;
+          requestAnimationFrame(() => done.classList.add("show"));
+          done.focus();
+          return;
+        }
+        const err = data?.error ?? "unknown";
+        errorBox.textContent =
+          err === "rate_limited"
+            ? "Has enviado varias solicitudes seguidas. Espera unos minutos o llámanos al 971 45 25 92."
+            : err === "invalid_email" || err === "invalid_phone" || err === "missing_required_fields"
+              ? "Revisa los datos del formulario, por favor."
+              : "No hemos podido enviar la solicitud. Llámanos al 971 45 25 92 o escribe a cvpalmanord@cvpalmanord.es.";
+        errorBox.hidden = false;
+      } catch {
+        errorBox.textContent = "Sin conexión. Inténtalo de nuevo o llámanos al 971 45 25 92.";
+        errorBox.hidden = false;
+      } finally {
+        form.classList.remove("is-sending");
+        submit.disabled = false;
+      }
+    });
+
+    go(0, false);
+  });
+</script>
+
+<style>
+  .quote {
+    padding-top: calc(var(--header-h) + clamp(32px, 5vw, 70px));
+    padding-bottom: clamp(72px, 9vw, 130px);
+    background:
+      radial-gradient(900px circle at 0% 0%, var(--brand-50), transparent 60%),
+      radial-gradient(700px circle at 100% 100%, var(--coral-50), transparent 60%);
+  }
+  .quote-grid {
+    display: grid;
+    grid-template-columns: 0.85fr 1.15fr;
+    gap: clamp(32px, 6vw, 90px);
+    align-items: start;
+  }
+  .quote-side {
+    position: sticky;
+    top: calc(var(--header-h) + 24px);
+  }
+  .quote-side h1 {
+    font-size: clamp(2.6rem, 1.8rem + 3.6vw, 4.6rem);
+  }
+  .side-steps {
+    list-style: none;
+    padding: 0;
+    margin: 32px 0;
+    display: grid;
+    gap: 10px;
+  }
+  .side-steps li {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: var(--muted);
+    transition: color 0.3s;
+  }
+  .side-steps span {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: inset 0 0 0 2px var(--line);
+    transition:
+      background-color 0.4s,
+      color 0.4s,
+      box-shadow 0.4s,
+      transform 0.5s var(--ease-spring);
+  }
+  .side-steps li.is-active {
+    color: var(--ink);
+  }
+  .side-steps li.is-active span {
+    background: var(--brand);
+    color: #fff;
+    box-shadow: none;
+    transform: scale(1.1);
+  }
+  .side-steps li.is-done span {
+    background: var(--brand-100);
+    color: var(--brand-800);
+    box-shadow: none;
+  }
+  .side-contact {
+    display: grid;
+    justify-items: start;
+    gap: 14px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+  }
+  .side-contact p {
+    margin: 0;
+    font-weight: 700;
+  }
+
+  .form-shell {
+    position: relative;
+    padding: clamp(28px, 4vw, 52px);
+    border-radius: var(--radius-l);
+    background: #fff;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .progress {
+    position: absolute;
+    inset: 0 0 auto;
+    height: 6px;
+    background: var(--brand-50);
+  }
+  .progress span {
+    display: block;
+    height: 100%;
+    width: 33%;
+    background: linear-gradient(90deg, var(--brand), var(--brand-light));
+    border-radius: 0 6px 6px 0;
+    transition: width 0.7s var(--ease);
+  }
+  .hp {
+    position: absolute;
+    left: -9999px;
+  }
+  fieldset {
+    border: 0;
+    padding: 0;
+    margin: 0 0 8px;
+    min-width: 0;
+  }
+  .is-stepped .step {
+    display: none;
+  }
+  .is-stepped .step.is-active {
+    display: block;
+    animation: step-in 0.6s var(--ease) both;
+  }
+  .is-stepped .step.is-active[data-dir="back"] {
+    animation-name: step-back;
+  }
+  @keyframes step-in {
+    from {
+      opacity: 0;
+      transform: translateX(40px);
+    }
+  }
+  @keyframes step-back {
+    from {
+      opacity: 0;
+      transform: translateX(-40px);
+    }
+  }
+  legend {
+    display: grid;
+    gap: 4px;
+    margin-bottom: 24px;
+    font-family: var(--font-display);
+    font-weight: 750;
+    font-size: clamp(1.8rem, 1.4rem + 1.4vw, 2.5rem);
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+  .step-n {
+    font-size: 1rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--brand);
+  }
+  .field {
+    margin-bottom: 22px;
+  }
+  label,
+  .label {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .opt {
+    font-weight: 400;
+    color: var(--muted);
+  }
+  input[type="text"],
+  input[type="tel"],
+  input[type="email"],
+  textarea {
+    width: 100%;
+    min-height: 60px;
+    padding: 14px 18px;
+    border-radius: 16px;
+    border: 2px solid var(--line);
+    background: var(--cream);
+    font: inherit;
+    font-size: 1.15rem;
+    color: var(--ink);
+    transition:
+      border-color 0.25s,
+      background-color 0.25s,
+      box-shadow 0.25s;
+  }
+  textarea {
+    resize: vertical;
+    min-height: 140px;
+  }
+  input::placeholder,
+  textarea::placeholder {
+    color: #8a939d;
+  }
+  input:hover,
+  textarea:hover {
+    border-color: rgba(59, 71, 107, 0.4);
+  }
+  input:focus,
+  textarea:focus {
+    outline: none;
+    border-color: var(--brand);
+    background: #fff;
+    box-shadow: 0 0 0 5px rgba(59, 71, 107, 0.14);
+  }
+  .err {
+    display: none;
+    margin: 8px 0 0;
+    color: var(--coral-ink);
+    font-weight: 700;
+    font-size: 1rem;
+  }
+  .has-error .err,
+  .err.show {
+    display: block;
+    animation: shake 0.4s;
+  }
+  .has-error input[type="text"],
+  .has-error input[type="tel"],
+  .has-error input[type="email"] {
+    border-color: var(--coral-ink);
+    background: var(--coral-50);
+  }
+  @keyframes shake {
+    25% {
+      transform: translateX(-6px);
+    }
+    75% {
+      transform: translateX(6px);
+    }
+  }
+
+  .pick {
+    display: grid;
+    gap: 10px;
+  }
+  .pick-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .pick-wrap {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .pick-item {
+    position: relative;
+    margin: 0;
+    cursor: pointer;
+  }
+  .pick-item input {
+    position: absolute;
+    opacity: 0;
+    inset: 0;
+    cursor: pointer;
+  }
+  .pick-item > span {
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+    padding: 16px 8px;
+    border-radius: 18px;
+    border: 2px solid var(--line);
+    background: var(--cream);
+    font-weight: 700;
+    text-align: center;
+    transition:
+      border-color 0.25s,
+      background-color 0.25s,
+      transform 0.4s var(--ease-spring),
+      box-shadow 0.25s;
+  }
+  .pick-item.pill > span {
+    display: block;
+    padding: 12px 18px;
+    border-radius: 999px;
+  }
+  .emoji {
+    font-size: 2rem;
+    line-height: 1;
+    transition: transform 0.5s var(--ease-spring);
+  }
+  .pick-item:hover > span {
+    border-color: rgba(59, 71, 107, 0.4);
+  }
+  .pick-item input:checked + span {
+    border-color: var(--brand);
+    background: var(--brand);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -10px rgba(59, 71, 107, 0.7);
+  }
+  .pick-item input:checked + span .emoji {
+    transform: scale(1.2) rotate(-8deg);
+  }
+  .pick-item input:focus-visible + span {
+    outline: 3px solid var(--coral);
+    outline-offset: 3px;
+  }
+  .has-error .pick-item > span {
+    border-color: rgba(184, 57, 58, 0.5);
+  }
+
+  .summary {
+    margin-bottom: 20px;
+    padding: 16px 20px;
+    border-radius: 16px;
+    background: var(--brand-50);
+    font-size: 1.05rem;
+  }
+  .summary:empty {
+    display: none;
+  }
+  .summary :global(p) {
+    margin: 0;
+  }
+  .summary :global(p + p) {
+    margin-top: 4px;
+  }
+  .check {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    font-weight: 400;
+    margin-bottom: 14px;
+    cursor: pointer;
+  }
+  .check input {
+    position: absolute;
+    opacity: 0;
+    width: 30px;
+    height: 30px;
+    margin: 0;
+  }
+  .check .box {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    border: 2px solid var(--line);
+    background: var(--cream);
+    color: transparent;
+    transition:
+      background-color 0.2s,
+      border-color 0.2s,
+      color 0.2s,
+      transform 0.4s var(--ease-spring);
+  }
+  .check input:checked + .box {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: #fff;
+    transform: scale(1.08);
+  }
+  .check input:focus-visible + .box {
+    outline: 3px solid var(--coral);
+    outline-offset: 3px;
+  }
+  .check a {
+    color: var(--brand);
+    font-weight: 700;
+  }
+  .err-legal {
+    margin: -6px 0 14px 44px;
+  }
+  .legal-mini {
+    font-size: 0.95rem;
+    color: var(--muted);
+    margin: 4px 0 0;
+  }
+  .nav-row {
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    margin-top: 28px;
+  }
+  .nav-row [data-next],
+  .nav-row [data-submit] {
+    margin-left: auto;
+    min-width: 200px;
+  }
+  .spinner {
+    display: none;
+    width: 22px;
+    height: 22px;
+    border: 3px solid rgba(255, 255, 255, 0.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  .is-sending .spinner {
+    display: block;
+  }
+  .is-sending .btn-label {
+    opacity: 0.7;
+  }
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  .form-error {
+    margin: 18px 0 0;
+    padding: 14px 18px;
+    border-radius: 14px;
+    background: var(--coral-50);
+    color: var(--coral-ink);
+    font-weight: 700;
+  }
+
+  .done {
+    position: relative;
+    text-align: center;
+    padding: 24px 0;
+    display: grid;
+    justify-items: center;
+    outline: none;
+  }
+  .done h2 {
+    margin-top: 24px;
+  }
+  .done .muted {
+    color: var(--muted);
+  }
+  .done-badge {
+    display: grid;
+    place-items: center;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    transform: scale(0);
+    transition: transform 0.7s var(--ease-spring) 0.1s;
+  }
+  .done.show .done-badge {
+    transform: scale(1);
+  }
+  .confetti span {
+    position: absolute;
+    left: 50%;
+    top: 80px;
+    color: var(--brand);
+    opacity: 0;
+  }
+  .confetti span:nth-child(3n) {
+    color: var(--coral);
+  }
+  .confetti span:nth-child(3n + 1) {
+    color: var(--brand-light);
+  }
+  .done.show .confetti span {
+    animation: burst 1.6s var(--ease) both;
+    animation-delay: calc(var(--i) * 25ms + 0.2s);
+  }
+  @keyframes burst {
+    0% {
+      opacity: 1;
+      transform: translate(-50%, 0) rotate(0) scale(0.4);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(calc(-50% + (var(--i) - 7) * 34px), calc(-60px - (var(--i) * 13 % 5) * 30px)) rotate(calc(var(--i) * 47deg)) scale(1.1);
+    }
+  }
+
+  @media (max-width: 960px) {
+    .quote-grid {
+      grid-template-columns: 1fr;
+    }
+    .quote-side {
+      position: static;
+    }
+    .side-steps {
+      display: none;
+    }
+    .side-contact {
+      display: none;
+    }
+  }
+  @media (max-width: 520px) {
+    .pick-4 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .nav-row [data-next],
+    .nav-row [data-submit] {
+      min-width: 0;
+      flex: 1;
+    }
+  }
+</style>
