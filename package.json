@@ -9,7 +9,7 @@
   "scripts": {
     "start": "node server.js",
     "audit:deps": "npm audit --omit=dev",
-    "build": "npm --prefix web ci && npm --prefix web run build"
+    "build:web": "npm --prefix web ci && npm --prefix web run build"
   },
   "dependencies": {
     "serve-handler": "6.1.7"
