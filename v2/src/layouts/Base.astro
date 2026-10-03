@@ -6,7 +6,7 @@ import Icon from "../components/Icon.astro";
 import { clinic, nav, schedule } from "../data/site";
 import { u } from "../data/url";
 import logoWhite from "../assets/img/logo-white.png";
-import logoTeal from "../assets/img/logo-teal.png";
+import logoBrand from "../assets/img/logo-brand.png";
 // Fuentes que se pintan nada mas abrir: se precargan para evitar el salto de texto
 import fontDisplay from "@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2?url";
 import fontBody from "@fontsource-variable/atkinson-hyperlegible-next/files/atkinson-hyperlegible-next-latin-wght-normal.woff2?url";
@@ -20,7 +20,7 @@ interface Props {
 }
 const {
   title,
-  description = "Clínica veterinaria de barrio en Palma desde 2006. Consulta, cirugía, vacunas, laboratorio propio y urgencias 24h.",
+  description = "Clínica veterinaria de barrio en Palma desde 2006. Consulta, cirugía, vacunas, laboratorio propio y cita previa por teléfono o desde la web.",
   darkHero = false
 } = Astro.props;
 
@@ -39,7 +39,7 @@ const scheduleJson = JSON.stringify(schedule);
     <meta name="robots" content="noindex, nofollow" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#006f6f" />
+    <meta name="theme-color" content="#3b476b" />
     <link rel="preload" href={fontBody} as="font" type="font/woff2" crossorigin />
     <link rel="preload" href={fontDisplay} as="font" type="font/woff2" crossorigin />
     <link rel="preload" href={fontDigits} as="font" type="font/woff2" crossorigin />
@@ -57,7 +57,7 @@ const scheduleJson = JSON.stringify(schedule);
       <div class="wrap header-inner">
         <a href={u("/")} class="brand" aria-label="Palmanord Clínica Veterinaria, inicio">
           <Image src={logoWhite} alt="" width={210} class="logo logo-white" loading="eager" />
-          <Image src={logoTeal} alt="" width={210} class="logo logo-teal" loading="eager" />
+          <Image src={logoBrand} alt="" width={210} class="logo logo-brand" loading="eager" />
         </a>
 
         <nav class="nav-desktop" aria-label="Principal">
@@ -79,7 +79,7 @@ const scheduleJson = JSON.stringify(schedule);
             <span class="dot live"></span><span data-open-text>Horario</span>
           </a>
           <a class="btn btn-coral btn-sm header-cta" href={u("/pide-tu-presupuesto/")}>
-            Pide presupuesto
+            Pedir cita
           </a>
           <button class="menu-btn" type="button" aria-expanded="false" aria-controls="mobile-menu" data-menu-btn>
             <span class="sr-only">Abrir menú</span>
@@ -103,7 +103,7 @@ const scheduleJson = JSON.stringify(schedule);
             }
           </ul>
           <div class="mobile-menu-cta" style={`--i:${nav.length}`}>
-            <a class="btn btn-coral" href={u("/pide-tu-presupuesto/")}>Pide tu presupuesto</a>
+            <a class="btn btn-coral" href={u("/pide-tu-presupuesto/")}>Pedir cita previa</a>
             <a class="btn btn-ghost-light" href={clinic.phone.href}><Icon name="phone" /> {clinic.phone.label}</a>
           </div>
         </nav>
@@ -129,8 +129,7 @@ const scheduleJson = JSON.stringify(schedule);
         <div class="footer-col">
           <h2>Llámanos</h2>
           <p>
-            Clínica: <a href={clinic.phone.href}>{clinic.phone.label}</a><br />
-            Urgencias 24h: <a href={clinic.urgent.href}>{clinic.urgent.label}</a><br />
+            Cita previa: <a href={clinic.phone.href}>{clinic.phone.label}</a><br />
             <a href={`mailto:${clinic.email}`}>{clinic.email}</a>
           </p>
         </div>
@@ -150,9 +149,9 @@ const scheduleJson = JSON.stringify(schedule);
 
     <!-- Barra de acciones fija en movil: lo importante a un toque -->
     <nav class="action-bar" aria-label="Acciones rápidas" transition:persist="action-bar">
-      <a href={clinic.phone.href}><Icon name="phone" /><span>Llamar</span></a>
-      <a href={u("/pide-tu-presupuesto/")} class="ab-main"><Icon name="calendar" /><span>Presupuesto</span></a>
-      <a href={clinic.urgent.href} class="ab-urgent"><Icon name="siren" /><span>Urgencias</span></a>
+      <a href={clinic.phone.href} class="ab-call"><Icon name="phone" /><span>Llamar</span></a>
+      <a href={u("/pide-tu-presupuesto/")} class="ab-main"><Icon name="calendar" /><span>Pedir cita</span></a>
+      <a href={clinic.mapsLink} target="_blank" rel="noopener"><Icon name="pin" /><span>Cómo llegar</span></a>
     </nav>
 
     <script is:inline define:vars={{ scheduleJson }}>
@@ -231,8 +230,8 @@ const scheduleJson = JSON.stringify(schedule);
       .site-header.menu-open .logo-white {
         opacity: 1;
       }
-      body[data-dark-hero] .site-header:not(.is-scrolled):not(.menu-open) .logo-teal,
-      .site-header.menu-open .logo-teal {
+      body[data-dark-hero] .site-header:not(.is-scrolled):not(.menu-open) .logo-brand,
+      .site-header.menu-open .logo-brand {
         opacity: 0;
       }
       .nav-desktop ul {
@@ -257,10 +256,10 @@ const scheduleJson = JSON.stringify(schedule);
           color 0.3s;
       }
       .nav-desktop a:hover {
-        background: var(--teal-50);
+        background: var(--brand-50);
       }
       .nav-desktop a[aria-current="page"] {
-        background: var(--teal);
+        background: var(--brand);
         color: #fff;
       }
       body[data-dark-hero] .site-header:not(.is-scrolled) .nav-desktop a {
@@ -271,7 +270,7 @@ const scheduleJson = JSON.stringify(schedule);
       }
       body[data-dark-hero] .site-header:not(.is-scrolled) .nav-desktop a[aria-current="page"] {
         background: #fff;
-        color: var(--teal-900);
+        color: var(--brand-900);
       }
       .header-actions {
         display: flex;
@@ -313,7 +312,7 @@ const scheduleJson = JSON.stringify(schedule);
         height: 52px;
         border-radius: 50%;
         border: 0;
-        background: var(--teal);
+        background: var(--brand);
         color: #fff;
         cursor: pointer;
         place-items: center;
@@ -351,14 +350,14 @@ const scheduleJson = JSON.stringify(schedule);
       }
       .menu-open .menu-btn {
         background: #fff;
-        color: var(--teal-900);
+        color: var(--brand-900);
       }
 
       .mobile-menu {
         position: fixed;
         inset: 0;
         z-index: 1;
-        background: var(--teal-900);
+        background: var(--brand-900);
         color: #fff;
         padding-top: calc(var(--header-h) + 24px);
         padding-bottom: 32px;
@@ -408,7 +407,7 @@ const scheduleJson = JSON.stringify(schedule);
         text-decoration: none;
       }
       .mobile-menu li a[aria-current="page"] {
-        color: var(--mint);
+        color: var(--brand-light);
       }
       .mobile-menu-cta {
         display: grid;
@@ -418,7 +417,7 @@ const scheduleJson = JSON.stringify(schedule);
 
       /* ---------- Footer ---------- */
       .site-footer {
-        background: var(--teal-900);
+        background: var(--brand-900);
         color: rgba(255, 255, 255, 0.86);
         padding-top: clamp(64px, 8vw, 110px);
         padding-bottom: 32px;
@@ -436,7 +435,7 @@ const scheduleJson = JSON.stringify(schedule);
         max-width: 30ch;
       }
       .footer-col h2 {
-        color: var(--mint);
+        color: var(--brand-light);
         font-size: 1rem;
         letter-spacing: 0.08em;
         text-transform: uppercase;
@@ -448,7 +447,7 @@ const scheduleJson = JSON.stringify(schedule);
         text-decoration-color: rgba(255, 255, 255, 0.35);
       }
       .site-footer a:hover {
-        text-decoration-color: var(--mint);
+        text-decoration-color: var(--brand-light);
       }
       .footer-bottom {
         display: flex;
@@ -513,8 +512,8 @@ const scheduleJson = JSON.stringify(schedule);
           gap: 6px;
           padding: 6px;
           border-radius: 26px;
-          background: rgba(1, 51, 52, 0.97);
-          box-shadow: 0 18px 40px -12px rgba(1, 51, 52, 0.55);
+          background: rgba(27, 33, 53, 0.97);
+          box-shadow: 0 18px 40px -12px rgba(27, 33, 53, 0.55);
           animation: bar-in 0.8s var(--ease) 0.4s both;
         }
         .action-bar a {
@@ -536,9 +535,9 @@ const scheduleJson = JSON.stringify(schedule);
         }
         .action-bar .ab-main {
           background: #fff;
-          color: var(--teal-900);
+          color: var(--brand-900);
         }
-        .action-bar .ab-urgent {
+        .action-bar .ab-call {
           background: var(--coral-ink);
         }
       }

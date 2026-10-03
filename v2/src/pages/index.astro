@@ -22,8 +22,9 @@ import i2872 from "../assets/img/inst-2872.jpg";
 import ix1 from "../assets/img/inst-x1.png";
 
 const featured = services.filter((s) => s.featured);
-const rest = services.filter((s) => !s.featured);
-const marquee = [...services.map((s) => s.title), ...specialties];
+// Las urgencias (solo clientes) se mencionan una vez, en la tarjeta de cita previa
+const rest = services.filter((s) => !s.featured && s.id !== "urgencias");
+const marquee = [...services.filter((s) => s.id !== "urgencias").map((s) => s.title), ...specialties];
 
 const team = [
   { name: "Miguel Ángel Sánchez", role: "Veterinario y fundador", img: miguel },
@@ -52,12 +53,12 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
           Tu clínica veterinaria <em>de confianza</em> en el barrio.
         </h1>
         <p class="hero-lead" data-reveal style="--d:4">
-          Desde {clinic.since} en Palma. Consulta, cirugía, vacunas, laboratorio propio y{" "}
-          <strong>urgencias 24h</strong> para nuestros clientes.
+          Desde {clinic.since} en Palma: consulta, cirugía, vacunas, laboratorio propio y mucho más.{" "}
+          <strong>Pide tu cita previa</strong> por teléfono o desde aquí.
         </p>
         <div class="hero-actions" data-reveal style="--d:5">
           <a class="btn btn-coral" href={u("/pide-tu-presupuesto/")}>
-            Pide tu presupuesto <Icon name="arrow" class="icon-arrow" />
+            Pide cita previa <Icon name="arrow" class="icon-arrow" />
           </a>
           <a class="btn btn-ghost-light" href={clinic.phone.href}>
             <Icon name="phone" /> {clinic.phone.label}
@@ -87,8 +88,8 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
           <span><strong>96%</strong> en Google</span>
         </div>
         <div class="float-card fc-3">
-          <span class="fc-icon coral"><Icon name="siren" /></span>
-          <span><strong>Urgencias</strong><br />24 horas</span>
+          <span class="fc-icon"><Icon name="calendar" /></span>
+          <span><strong>Cita previa</strong><br />{clinic.phone.label}</span>
         </div>
       </div>
     </div>
@@ -99,14 +100,14 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
         <li data-reveal style="--d:6">
           <a href={u("/pide-tu-presupuesto/")} data-glow>
             <span class="q-icon"><Icon name="calendar" size={30} /></span>
-            <span class="q-text"><strong>Pedir cita o presupuesto</strong><span>Te llamamos nosotros</span></span>
+            <span class="q-text"><strong>Pedir cita online</strong><span>Rellénalo en 1 minuto y te llamamos</span></span>
             <Icon name="arrow" class="q-arrow" />
           </a>
         </li>
         <li data-reveal style="--d:7">
-          <a href={clinic.urgent.href} class="q-urgent" data-glow>
-            <span class="q-icon"><Icon name="siren" size={30} /></span>
-            <span class="q-text"><strong>Es una urgencia</strong><span>{clinic.urgent.label} · 24h</span></span>
+          <a href={clinic.phone.href} class="q-call" data-glow>
+            <span class="q-icon"><Icon name="phone" size={30} /></span>
+            <span class="q-text"><strong>Llamar para pedir cita</strong><span>{clinic.phone.label} · L–V 10:00–19:00</span></span>
             <Icon name="arrow" class="q-arrow" />
           </a>
         </li>
@@ -140,7 +141,7 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
   </div>
 
   <!-- ================= SERVICIOS ================= -->
-  <section class="section services" data-anim>
+  <section class="section services">
     <div class="wrap">
       <div class="section-head">
         <p class="eyebrow" data-reveal>Nuestros servicios</p>
@@ -168,12 +169,16 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
             <p>{featured[1].lead}</p>
           </div>
         </a>
-        <a href={clinic.urgent.href} class="tile t-urgencias" data-reveal style="--d:2" data-glow>
-          <span class="tile-icon pulse"><Icon name="siren" size={30} /></span>
-          <h3>{featured[2].title}</h3>
-          <p>{featured[2].lead}</p>
-          <span class="big-phone"><Icon name="phone" /> {clinic.urgent.label}</span>
-        </a>
+        <div class="tile t-cita" data-reveal style="--d:2" data-glow>
+          <span class="tile-icon"><Icon name="calendar" size={30} /></span>
+          <h3>Cita previa</h3>
+          <p>Llámanos o pídela online y te atendemos sin esperas.</p>
+          <a class="big-phone" href={clinic.phone.href}><Icon name="phone" /> {clinic.phone.label}</a>
+          <div class="cita-row">
+            <a class="btn btn-light btn-sm" href={u("/pide-tu-presupuesto/")}>Pedir cita online <Icon name="arrow" class="icon-arrow" /></a>
+          </div>
+          <p class="cita-note">¿Ya eres cliente? Urgencias 24h en el <a href={clinic.urgent.href}>{clinic.urgent.label}</a>.</p>
+        </div>
 
         {
           rest.map((s, i) => (
@@ -358,7 +363,7 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
     position: relative;
     overflow: hidden;
     isolation: isolate;
-    background: var(--teal-900);
+    background: var(--brand-900);
     color: #fff;
     padding-top: calc(var(--header-h) + clamp(32px, 6vw, 80px));
     padding-bottom: clamp(48px, 6vw, 80px);
@@ -381,7 +386,7 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
     height: 55vw;
     left: -15vw;
     top: -20vw;
-    --c: #0b7f7a;
+    --c: #4a5a8f;
     opacity: 0.9;
   }
   .o2 {
@@ -389,7 +394,7 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
     height: 40vw;
     right: -10vw;
     top: 10vw;
-    --c: #0f9488;
+    --c: #5868a0;
     opacity: 0.6;
     animation-delay: -5s;
   }
@@ -440,7 +445,7 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
   }
   .hero h1 em {
     font-style: normal;
-    color: var(--mint);
+    color: var(--brand-light);
   }
   .hero-lead {
     font-size: clamp(1.2rem, 1.1rem + 0.5vw, 1.5rem);
@@ -537,8 +542,8 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
     width: 44px;
     height: 44px;
     border-radius: 14px;
-    background: var(--teal-50);
-    color: var(--teal);
+    background: var(--brand-50);
+    color: var(--brand);
   }
   .fc-icon.coral {
     background: var(--coral-50);
@@ -600,9 +605,9 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
     height: 58px;
     border-radius: 18px;
     background: #fff;
-    color: var(--teal);
+    color: var(--brand);
   }
-  .q-urgent .q-icon {
+  .q-call .q-icon {
     background: var(--coral-ink);
     color: #fff;
   }
@@ -703,7 +708,7 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
     position: absolute;
     inset: 0;
     z-index: -1;
-    background: radial-gradient(300px circle at var(--mx, 50%) var(--my, 50%), var(--teal-50), transparent 70%);
+    background: radial-gradient(300px circle at var(--mx, 50%) var(--my, 50%), var(--brand-50), transparent 70%);
     opacity: 0;
     transition: opacity 0.4s;
   }
@@ -728,8 +733,8 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
     width: 54px;
     height: 54px;
     border-radius: 16px;
-    background: var(--teal-50);
-    color: var(--teal);
+    background: var(--brand-50);
+    color: var(--brand);
     transition: transform 0.6s var(--ease-spring);
   }
   .tile:hover .tile-icon {
@@ -758,7 +763,7 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
     position: absolute;
     inset: 0;
     z-index: -1;
-    background: linear-gradient(180deg, transparent 30%, rgba(1, 35, 36, 0.88) 100%);
+    background: linear-gradient(180deg, transparent 30%, rgba(21, 26, 43, 0.88) 100%);
   }
   .tile-photo::after {
     display: none;
@@ -789,47 +794,60 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
     grid-column: span 2;
     min-height: 272px;
   }
-  .t-urgencias {
+  .t-cita {
     grid-column: span 2;
-    background: linear-gradient(135deg, var(--coral-ink), #8f2526);
+    background: linear-gradient(135deg, var(--brand), var(--brand-800));
     color: #fff;
     justify-content: center;
+    align-items: flex-start;
   }
-  .t-urgencias::after {
-    background: radial-gradient(300px circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, 0.18), transparent 70%);
+  .t-cita::after {
+    background: radial-gradient(300px circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, 0.14), transparent 70%);
   }
-  .t-urgencias h3 {
+  .t-cita h3 {
     color: #fff;
     font-size: clamp(1.7rem, 1.3rem + 1.2vw, 2.4rem);
   }
-  .t-urgencias p {
-    color: rgba(255, 255, 255, 0.9);
+  .t-cita p {
+    color: rgba(255, 255, 255, 0.88);
   }
-  .t-urgencias .tile-icon {
+  .t-cita .tile-icon {
     background: #fff;
-    color: var(--coral-ink);
-  }
-  .pulse {
-    position: relative;
-  }
-  .pulse::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: #fff;
-    animation: ping 2s var(--ease) infinite;
-    z-index: -1;
+    color: var(--brand);
   }
   .big-phone {
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    margin-top: 12px;
+    margin-top: 10px;
     font-family: var(--font-display);
     font-weight: 800;
     font-size: clamp(1.6rem, 1.2rem + 1.4vw, 2.3rem);
     letter-spacing: -0.02em;
+    color: #fff;
+    text-decoration: none;
+  }
+  .big-phone:hover {
+    text-decoration: underline;
+    text-underline-offset: 6px;
+    text-decoration-thickness: 2px;
+  }
+  .cita-row {
+    margin-top: 14px;
+  }
+  .t-cita .btn-sm {
+    min-height: 48px;
+    padding: 10px 20px;
+    font-size: 1rem;
+  }
+  .t-cita .cita-note {
+    margin-top: 16px;
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.78);
+  }
+  .cita-note a {
+    color: #fff;
+    font-weight: 700;
   }
   .specialties {
     display: flex;
@@ -854,7 +872,7 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
       color 0.3s;
   }
   .spec:hover {
-    background: var(--teal);
+    background: var(--brand);
     color: #fff;
   }
   .center-link {
@@ -865,7 +883,7 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
 
   /* ---------- Cifras ---------- */
   .stats-sec {
-    background: var(--teal);
+    background: var(--brand);
     color: #fff;
     padding-block: clamp(72px, 9vw, 130px);
     border-radius: var(--radius-l);
@@ -882,7 +900,7 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
     color: #fff;
   }
   .eyebrow.light {
-    color: var(--mint);
+    color: var(--brand-light);
   }
   .stats-photo {
     position: relative;
@@ -971,7 +989,7 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
     aspect-ratio: 4 / 4.6;
     border-radius: var(--radius);
     overflow: hidden;
-    background: var(--teal-50);
+    background: var(--brand-50);
     margin-bottom: 18px;
   }
   .member-photo img {
@@ -988,7 +1006,7 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
     margin-bottom: 4px;
   }
   .member p {
-    color: var(--teal);
+    color: var(--brand);
     font-weight: 700;
     margin: 0;
   }
@@ -1075,10 +1093,10 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
     stroke-width: 10;
   }
   .ring-bg {
-    stroke: var(--teal-50);
+    stroke: var(--brand-50);
   }
   .ring-fg {
-    stroke: var(--teal);
+    stroke: var(--brand);
     stroke-linecap: round;
     stroke-dasharray: 327;
     stroke-dashoffset: calc(327 - 327 * var(--p) / 100);
@@ -1115,7 +1133,7 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
   .ring-val .pct {
     font-size: 0.6em;
     margin-left: 2px;
-    color: var(--teal);
+    color: var(--brand);
   }
   .ring-card p {
     margin: 16px 0 0;
@@ -1132,7 +1150,7 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
       min-height: 440px;
     }
     .t-cirugia,
-    .t-urgencias {
+    .t-cita {
       grid-column: span 1;
     }
     .quick {
@@ -1160,11 +1178,11 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
     }
     .t-consulta,
     .t-cirugia,
-    .t-urgencias {
+    .t-cita {
       grid-column: auto;
       min-height: 340px;
     }
-    .t-urgencias {
+    .t-cita {
       min-height: auto;
     }
     .team-grid {

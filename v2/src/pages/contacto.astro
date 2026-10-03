@@ -6,15 +6,14 @@ import { clinic, schedule } from "../data/site";
 import { u } from "../data/url";
 
 const cards = [
-  { icon: "phone", title: "Llámanos", value: clinic.phone.label, href: clinic.phone.href, note: "Lunes a viernes, 10:00 – 19:00" },
-  { icon: "siren", title: "Urgencias 24h", value: clinic.urgent.label, href: clinic.urgent.href, note: "Para clientes, a cualquier hora", urgent: true },
+  { icon: "phone", title: "Cita previa", value: clinic.phone.label, href: clinic.phone.href, note: "Lunes a viernes, 10:00 – 19:00" },
   { icon: "mail", title: "Escríbenos", value: clinic.email, href: `mailto:${clinic.email}`, note: "Te respondemos lo antes posible" },
   { icon: "pin", title: "Encuéntranos", value: clinic.address, href: clinic.mapsLink, note: clinic.city, external: true }
 ];
 ---
 
-<Base title="Contacto" darkHero description="Clínica Veterinaria Palmanord: Carrer dels Ocells, 36, 07011 Palma. Teléfono 971 45 25 92 · Urgencias 24h 655 214 080.">
-  <PageHero eyebrow="Contacto" title="Estamos aquí al lado." lead="Llama, escribe o pásate por la clínica. Y si es una urgencia, llama directamente al 655 214 080." />
+<Base title="Contacto" darkHero description="Clínica Veterinaria Palmanord: Carrer dels Ocells, 36, 07011 Palma. Cita previa: 971 45 25 92.">
+  <PageHero eyebrow="Contacto" title="Estamos aquí al lado." lead="Pide cita previa por teléfono, escríbenos o pásate por la clínica. Te atendemos de lunes a viernes, de 10:00 a 19:00." />
 
   <section class="section contact">
     <div class="wrap">
@@ -24,7 +23,7 @@ const cards = [
             <li data-reveal style={`--d:${i}`}>
               <a
                 href={c.href}
-                class:list={["card", { urgent: c.urgent }]}
+                class="card"
                 data-glow
                 target={c.external ? "_blank" : undefined}
                 rel={c.external ? "noopener" : undefined}
@@ -66,7 +65,7 @@ const cards = [
             </tbody>
           </table>
           <p class="hours-note">
-            <Icon name="siren" size={20} /> Urgencias 24h para clientes: <a href={clinic.urgent.href}>{clinic.urgent.label}</a>
+            <Icon name="clock" size={20} /> Urgencias 24h para clientes: <a href={clinic.urgent.href}>{clinic.urgent.label}</a>
           </p>
         </div>
 
@@ -84,7 +83,7 @@ const cards = [
 
       <div class="contact-cta" data-reveal>
         <p>¿Prefieres que te llamemos nosotros?</p>
-        <a class="btn btn-coral" href={u("/pide-tu-presupuesto/")}>Pide tu presupuesto <Icon name="arrow" class="icon-arrow" /></a>
+        <a class="btn btn-coral" href={u("/pide-tu-presupuesto/")}>Pedir cita online <Icon name="arrow" class="icon-arrow" /></a>
       </div>
     </div>
   </section>
@@ -99,7 +98,7 @@ const cards = [
     padding: 0;
     margin: 0 0 20px;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 16px;
   }
   .card {
@@ -124,7 +123,7 @@ const cards = [
     position: absolute;
     inset: 0;
     z-index: -1;
-    background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), var(--teal-50), transparent 70%);
+    background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), var(--brand-50), transparent 70%);
     opacity: 0;
     transition: opacity 0.4s;
   }
@@ -141,8 +140,8 @@ const cards = [
     width: 58px;
     height: 58px;
     border-radius: 18px;
-    background: var(--teal-50);
-    color: var(--teal);
+    background: var(--brand-50);
+    color: var(--brand);
     margin-bottom: 14px;
   }
   .c-title {
@@ -165,21 +164,6 @@ const cards = [
   .c-note {
     font-size: 1rem;
     color: var(--muted);
-  }
-  .card.urgent {
-    background: linear-gradient(135deg, var(--coral-ink), #8f2526);
-    color: #fff;
-  }
-  .card.urgent::after {
-    background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, 0.18), transparent 70%);
-  }
-  .card.urgent .c-icon {
-    background: #fff;
-    color: var(--coral-ink);
-  }
-  .card.urgent .c-title,
-  .card.urgent .c-note {
-    color: rgba(255, 255, 255, 0.85);
   }
 
   .split {
@@ -233,6 +217,7 @@ const cards = [
   }
   td {
     text-align: right;
+    white-space: nowrap;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
   }
@@ -241,8 +226,8 @@ const cards = [
   }
   tr.is-today th,
   tr.is-today td {
-    background: var(--teal-50);
-    color: var(--teal-800);
+    background: var(--brand-50);
+    color: var(--brand-800);
     font-weight: 800;
   }
   tr.is-today th {
@@ -256,7 +241,7 @@ const cards = [
     margin-left: 8px;
     padding: 2px 10px;
     border-radius: 999px;
-    background: var(--teal);
+    background: var(--brand);
     color: #fff;
     font-size: 0.8rem;
     vertical-align: middle;
@@ -270,8 +255,8 @@ const cards = [
     flex-wrap: wrap;
     gap: 8px;
     margin: 20px 0 0;
-    color: var(--coral-ink);
-    font-weight: 700;
+    color: var(--muted);
+    font-size: 1.05rem;
   }
   .hours-note a {
     color: inherit;
@@ -281,7 +266,7 @@ const cards = [
     min-height: 460px;
     border-radius: var(--radius-l);
     overflow: hidden;
-    background: var(--teal-50);
+    background: var(--brand-50);
     box-shadow: var(--shadow-s);
   }
   .map iframe {
@@ -313,9 +298,9 @@ const cards = [
     font-size: clamp(1.4rem, 1.2rem + 1vw, 2rem);
     letter-spacing: -0.02em;
   }
-  @media (max-width: 1080px) {
+  @media (max-width: 960px) {
     .cards {
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
     }
   }
   @media (max-width: 860px) {

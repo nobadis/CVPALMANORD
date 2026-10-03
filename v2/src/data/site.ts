@@ -59,14 +59,6 @@ export const services: Service[] = [
     featured: true
   },
   {
-    id: "urgencias",
-    icon: "siren",
-    title: "Urgencias 24h",
-    lead: "Atendemos cualquier problema, en cualquier momento.",
-    body: "Garantizamos un servicio médico de calidad y una atención personalizada para cada mascota, también fuera de horario, con nuestro servicio de urgencias 24h para clientes.",
-    featured: true
-  },
-  {
     id: "preventiva",
     icon: "shield",
     title: "Medicina preventiva",
@@ -109,6 +101,13 @@ export const services: Service[] = [
     body: "Nuestras salas de hospitalización ofrecen la mejor asistencia cuando tu mascota necesita cuidados intensivos o una atención especial."
   },
   {
+    id: "urgencias",
+    icon: "clock",
+    title: "Urgencias 24h para clientes",
+    lead: "Si ya eres cliente, te atendemos a cualquier hora.",
+    body: "Queremos poder atender cualquier problema en cualquier momento. Por eso, nuestros clientes disponen de un servicio de urgencias 24h, con la misma atención personalizada de siempre."
+  },
+  {
     id: "laboratorio",
     icon: "flask",
     title: "Laboratorio propio",
@@ -138,7 +137,7 @@ export const stats = [
   { value: 800, prefix: "+", label: "familias han confiado en nosotros" },
   { value: 100, prefix: "+", label: "razas atendidas" },
   { value: 2006, prefix: "", label: "cuidando del barrio desde", plain: true },
-  { value: 24, prefix: "", suffix: "h", label: "urgencias para clientes" }
+  { value: 20, prefix: "+", label: "años de experiencia" }
 ];
 
 export const quotes = [

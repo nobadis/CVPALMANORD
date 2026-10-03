@@ -11,7 +11,7 @@ interface Props {
 }
 const {
   title = "¿Hablamos de tu mascota?",
-  text = "Cuéntanos qué necesita y te llamamos. Si es urgente, llámanos directamente: atendemos 24h a nuestros clientes."
+  text = "Pide cita previa por teléfono o déjanos tus datos y te llamamos nosotros. Sin esperas y sin compromiso."
 } = Astro.props;
 ---
 
@@ -25,10 +25,10 @@ const {
       </div>
       <div class="cta-actions">
         <a class="btn btn-light" href={u("/pide-tu-presupuesto/")}>
-          Pide tu presupuesto <Icon name="arrow" class="icon-arrow" />
+          Pedir cita online <Icon name="arrow" class="icon-arrow" />
         </a>
-        <a class="btn btn-coral" href={clinic.urgent.href}>
-          <Icon name="siren" /> Urgencias {clinic.urgent.label}
+        <a class="btn btn-coral" href={clinic.phone.href}>
+          <Icon name="phone" /> Llamar al {clinic.phone.label}
         </a>
       </div>
     </div>
@@ -49,8 +49,8 @@ const {
     padding: clamp(36px, 6vw, 80px);
     border-radius: var(--radius-l);
     background:
-      radial-gradient(600px circle at var(--mx, 80%) var(--my, 20%), rgba(159, 216, 207, 0.22), transparent 55%),
-      linear-gradient(135deg, var(--teal) 0%, var(--teal-800) 100%);
+      radial-gradient(600px circle at var(--mx, 80%) var(--my, 20%), rgba(184, 195, 232, 0.22), transparent 55%),
+      linear-gradient(135deg, var(--brand) 0%, var(--brand-800) 100%);
     color: #fff;
     isolation: isolate;
   }
