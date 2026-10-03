@@ -291,19 +291,23 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
       </div>
       <div class="rings">
         <div class="ring-card" data-reveal style="--d:1">
-          <svg viewBox="0 0 120 120" class="ring" style="--p:100" aria-hidden="true">
-            <circle cx="60" cy="60" r="52" class="ring-bg"></circle>
-            <circle cx="60" cy="60" r="52" class="ring-fg"></circle>
-          </svg>
-          <div class="ring-val"><span data-count="100">100</span>%</div>
+          <div class="ring-wrap">
+            <svg viewBox="0 0 120 120" class="ring" style="--p:100" aria-hidden="true">
+              <circle cx="60" cy="60" r="52" class="ring-bg"></circle>
+              <circle cx="60" cy="60" r="52" class="ring-fg"></circle>
+            </svg>
+            <div class="ring-val"><span data-count="100">100</span><span class="pct">%</span></div>
+          </div>
           <p><strong>Facebook</strong><br />recomiendan la clínica</p>
         </div>
         <div class="ring-card" data-reveal style="--d:2">
-          <svg viewBox="0 0 120 120" class="ring" style="--p:96" aria-hidden="true">
-            <circle cx="60" cy="60" r="52" class="ring-bg"></circle>
-            <circle cx="60" cy="60" r="52" class="ring-fg"></circle>
-          </svg>
-          <div class="ring-val"><span data-count="96">96</span>%</div>
+          <div class="ring-wrap">
+            <svg viewBox="0 0 120 120" class="ring" style="--p:96" aria-hidden="true">
+              <circle cx="60" cy="60" r="52" class="ring-bg"></circle>
+              <circle cx="60" cy="60" r="52" class="ring-fg"></circle>
+            </svg>
+            <div class="ring-val"><span data-count="96">96</span><span class="pct">%</span></div>
+          </div>
           <p><strong>Google</strong><br />valoración de reseñas</p>
         </div>
       </div>
@@ -454,8 +458,8 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
 
   .hero-visual {
     position: relative;
-    aspect-ratio: 1 / 1.05;
-    max-width: 560px;
+    aspect-ratio: 1.45 / 1;
+    max-width: 640px;
     width: 100%;
     justify-self: end;
   }
@@ -469,22 +473,21 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
   }
   .hero-photo {
     position: absolute;
-    inset: 6% 0 0 10%;
-    border-radius: 46% 54% 42% 58% / 52% 44% 56% 48%;
+    inset: 6% 0 6% 4%;
+    border-radius: 40px 120px 40px 120px;
     overflow: hidden;
     box-shadow: 0 40px 80px -30px rgba(0, 0, 0, 0.6);
-    animation: morph 14s ease-in-out infinite;
+    animation: morph 12s ease-in-out infinite;
   }
   .hero-photo img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: 40% 30%;
-    transform: scale(1.06);
+    object-position: 50% 40%;
   }
   @keyframes morph {
     50% {
-      border-radius: 56% 44% 52% 48% / 44% 56% 44% 56%;
+      border-radius: 120px 40px 120px 40px;
     }
   }
   @keyframes float {
@@ -511,12 +514,12 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
     font-size: 1.15rem;
   }
   .fc-1 {
-    left: -4%;
-    bottom: 16%;
+    left: -6%;
+    bottom: 10%;
   }
   .fc-2 {
-    right: -2%;
-    top: 4%;
+    right: -3%;
+    top: -2%;
     flex-direction: column;
     align-items: flex-start;
     gap: 2px;
@@ -524,8 +527,8 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
     animation-delay: -2s;
   }
   .fc-3 {
-    right: 4%;
-    bottom: -2%;
+    right: 2%;
+    bottom: -4%;
     animation-delay: -4s;
   }
   .stars {
@@ -1091,19 +1094,32 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
   :global(.js) .ring-card.is-in .ring-fg {
     stroke-dashoffset: calc(327 - 327 * var(--p) / 100);
   }
-  .ring-val {
-    position: absolute;
-    top: 32px;
-    left: 50%;
-    translate: -50% 0;
+  .ring-wrap {
+    position: relative;
     width: min(170px, 100%);
     aspect-ratio: 1;
-    display: grid;
-    place-items: center;
+  }
+  .ring-wrap .ring {
+    width: 100%;
+  }
+  .ring-val {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
     font-family: var(--font-display);
     font-weight: 800;
     font-size: 2.6rem;
+    line-height: 1;
     letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+  }
+  .ring-val .pct {
+    font-size: 0.6em;
+    margin-left: 2px;
+    color: var(--teal);
   }
   .ring-card p {
     margin: 16px 0 0;
@@ -1135,7 +1151,7 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
     }
     .hero-visual {
       justify-self: center;
-      max-width: 440px;
+      max-width: 520px;
       margin-top: 8px;
     }
     .team-grid {
@@ -1171,14 +1187,17 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
       padding: 20px 12px;
     }
     .ring-val {
-      top: 20px;
       font-size: 2rem;
     }
     .float-card {
       font-size: 0.9rem;
     }
     .fc-1 {
-      left: 0;
+      left: -2%;
+      bottom: -6%;
+    }
+    .fc-3 {
+      display: none;
     }
     .strip-item:nth-child(even) {
       margin-top: 24px;
