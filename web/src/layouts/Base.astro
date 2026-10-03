@@ -17,11 +17,14 @@ interface Props {
   description?: string;
   /** Cabecera transparente sobre un hero oscuro */
   darkHero?: boolean;
+  /** Oculta la barra de acciones rapidas (p. ej. en el formulario) */
+  hideBar?: boolean;
 }
 const {
   title,
   description = "Clínica veterinaria de barrio en Palma desde 2006. Consulta, cirugía, vacunas, laboratorio propio y cita previa por teléfono o desde la web.",
-  darkHero = false
+  darkHero = false,
+  hideBar = false
 } = Astro.props;
 
 const path = Astro.url.pathname;
@@ -121,7 +124,7 @@ const jsonLd = JSON.stringify({
     <script is:inline src="/assets/clarity-init.js" defer></script>
     <ClientRouter />
   </head>
-  <body data-dark-hero={darkHero ? "true" : undefined}>
+  <body data-dark-hero={darkHero ? "true" : undefined} data-hide-bar={hideBar ? "true" : undefined}>
     <a class="skip" href="#main">Saltar al contenido</a>
 
     <header class="site-header" data-header transition:persist="header">
@@ -266,7 +269,7 @@ const jsonLd = JSON.stringify({
           transform 0.5s var(--ease);
       }
       .site-header.is-scrolled {
-        background: rgba(251, 247, 241, 0.9);
+        background: rgba(251, 247, 241, 0.97);
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
         box-shadow: 0 1px 0 var(--line);
@@ -424,6 +427,13 @@ const jsonLd = JSON.stringify({
         color: var(--brand-900);
       }
 
+      :global(html.menu-lock) {
+        overflow: hidden;
+      }
+      :global(body[data-hide-bar]) .action-bar,
+      :global(html.menu-lock) .action-bar {
+        display: none;
+      }
       .mobile-menu {
         position: fixed;
         inset: 0;
@@ -433,6 +443,7 @@ const jsonLd = JSON.stringify({
         padding-top: calc(var(--header-h) + 24px);
         padding-bottom: 32px;
         overflow-y: auto;
+        overscroll-behavior: contain;
         clip-path: circle(0 at calc(100% - 46px) 38px);
         visibility: hidden;
         transition:

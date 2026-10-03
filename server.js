@@ -55,7 +55,7 @@ const SECURITY_HEADERS = {
     "object-src 'none'",
     "frame-ancestors 'none'",
     "form-action 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.clarity.ms https://scripts.clarity.ms",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' data: https://www.googletagmanager.com https://www.clarity.ms https://scripts.clarity.ms",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com data:",
     "img-src 'self' data: https: blob:",

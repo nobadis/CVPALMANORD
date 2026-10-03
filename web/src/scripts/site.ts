@@ -7,13 +7,39 @@ let pageObservers: IntersectionObserver[] = [];
 let pageCleanups: Array<() => void> = [];
 
 /* ---------- Header (persistente entre paginas) ---------- */
-function initHeaderOnce() {
-  const header = document.querySelector<HTMLElement>("[data-header]");
-  if (!header || header.dataset.ready) return;
-  header.dataset.ready = "1";
+// Los listeners son globales y delegados: funcionan aunque Astro sustituya
+// o reutilice el <header> al navegar (transition:persist, atras/adelante...).
+let headerBound = false;
+let lastY = 0;
 
-  let lastY = window.scrollY;
+const getHeader = () => document.querySelector<HTMLElement>("[data-header]");
+
+function setMenu(open: boolean) {
+  const header = getHeader();
+  const btn = header?.querySelector<HTMLButtonElement>("[data-menu-btn]");
+  const menu = header?.querySelector<HTMLElement>("[data-menu]");
+  if (!header || !btn || !menu) return;
+  menu.hidden = false;
+  menu.classList.toggle("is-open", open);
+  menu.toggleAttribute("inert", !open);
+  header.classList.toggle("menu-open", open);
+  document.documentElement.classList.toggle("menu-lock", open);
+  btn.setAttribute("aria-expanded", String(open));
+  const label = btn.querySelector(".sr-only");
+  if (label) label.textContent = open ? "Cerrar menú" : "Abrir menú";
+}
+const isMenuOpen = () => !!getHeader()?.querySelector("[data-menu].is-open");
+
+function initHeader() {
+  // Cada instancia del header se deja en estado cerrado y coherente
+  setMenu(false);
+  if (headerBound) return;
+  headerBound = true;
+
+  lastY = window.scrollY;
   const onScroll = () => {
+    const header = getHeader();
+    if (!header) return;
     const y = window.scrollY;
     header.classList.toggle("is-scrolled", y > 24);
     const goingDown = y > lastY + 4;
@@ -25,28 +51,32 @@ function initHeaderOnce() {
   window.addEventListener("scroll", onScroll, { passive: true });
   onScroll();
 
-  const btn = header.querySelector<HTMLButtonElement>("[data-menu-btn]");
-  const menu = header.querySelector<HTMLElement>("[data-menu]");
-  if (!btn || !menu) return;
-  menu.hidden = false;
-
-  const setOpen = (open: boolean) => {
-    menu.classList.toggle("is-open", open);
-    header.classList.toggle("menu-open", open);
-    btn.setAttribute("aria-expanded", String(open));
-    btn.querySelector(".sr-only")!.textContent = open ? "Cerrar menú" : "Abrir menú";
-    document.documentElement.style.overflow = open ? "hidden" : "";
-    menu.toggleAttribute("inert", !open);
-  };
-  menu.setAttribute("inert", "");
-  btn.addEventListener("click", () => setOpen(!menu.classList.contains("is-open")));
+  document.addEventListener("click", (e) => {
+    const target = e.target as Element | null;
+    if (!target) return;
+    if (target.closest("[data-menu-btn]")) {
+      setMenu(!isMenuOpen());
+      return;
+    }
+    if (!isMenuOpen()) return;
+    // Cualquier enlace del menu lo cierra (tambien el de la pagina actual,
+    // donde no hay navegacion que lo cierre por nosotros)
+    if (target.closest("[data-menu] a")) setMenu(false);
+  });
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && menu.classList.contains("is-open")) {
-      setOpen(false);
-      btn.focus();
+    if (e.key === "Escape" && isMenuOpen()) {
+      setMenu(false);
+      getHeader()?.querySelector<HTMLButtonElement>("[data-menu-btn]")?.focus();
     }
   });
-  document.addEventListener("astro:before-swap", () => setOpen(false));
+  // Si se agranda la ventana (rotar el movil) el menu no puede quedar abierto
+  window.matchMedia("(min-width: 1081px)").addEventListener("change", (m) => {
+    if (m.matches) setMenu(false);
+  });
+  document.addEventListener("astro:before-swap", () => setMenu(false));
+  window.addEventListener("pageshow", (e) => {
+    if (e.persisted) setMenu(false);
+  });
 }
 
 function syncNav() {
@@ -271,7 +301,7 @@ export function initSite() {
   pageObservers = [];
   pageCleanups = [];
 
-  initHeaderOnce();
+  initHeader();
   syncNav();
   renderOpenStatus();
   splitWords();
