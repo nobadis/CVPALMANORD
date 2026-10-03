@@ -335,9 +335,9 @@ h3 {
   opacity: 0;
   transform: translateY(36px);
   transition:
-    opacity 0.9s var(--ease),
-    transform 0.9s var(--ease);
-  transition-delay: calc(var(--d, 0) * 90ms);
+    opacity 0.7s var(--ease),
+    transform 0.75s var(--ease);
+  transition-delay: calc(var(--d, 0) * 70ms);
 }
 .js [data-reveal="scale"] {
   transform: scale(0.94);
@@ -361,11 +361,17 @@ h3 {
 .js [data-split] .w > span {
   display: inline-block;
   transform: translateY(110%);
-  transition: transform 1s var(--ease);
-  transition-delay: calc(var(--i) * 55ms + 80ms);
+  transition: transform 0.8s var(--ease);
+  transition-delay: calc(min(var(--i), 10) * 40ms + 40ms);
 }
 .js [data-split].is-in .w > span {
   transform: none;
+}
+
+/* Animaciones infinitas en pausa fuera de pantalla (ver pauseOffscreen) */
+.anim-paused,
+.anim-paused * {
+  animation-play-state: paused !important;
 }
 
 /* ---------- Page transitions ---------- */
@@ -382,10 +388,10 @@ h3 {
   }
 }
 ::view-transition-old(main) {
-  animation: vt-out 0.35s var(--ease) both;
+  animation: vt-out 0.22s var(--ease) both;
 }
 ::view-transition-new(main) {
-  animation: vt-in 0.6s var(--ease) both;
+  animation: vt-in 0.45s var(--ease) both;
 }
 
 @media (prefers-reduced-motion: reduce) {

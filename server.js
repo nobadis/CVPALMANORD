@@ -1,11 +1,14 @@
 "use strict";
 
 const http = require("http");
+const fs = require("fs");
 const path = require("path");
+const zlib = require("zlib");
 const { URL } = require("url");
 const serveHandler = require("serve-handler");
 
 const SITE_DIR = path.join(__dirname, "site");
+const V2_DIR = path.join(SITE_DIR, "v2");
 const PORT = Number.parseInt(process.env.PORT || "3000", 10) || 3000;
 const HOST = "0.0.0.0";
 
@@ -435,6 +438,148 @@ async function handleContactApi(req, res) {
   res.end(JSON.stringify({ ok: result.ok, error: result.error || null }));
 }
 
+// ---------- v2 (Astro): estaticos con compresion y cache ----------
+// serve-handler no comprime ni cachea; para la v2 servimos nosotros los
+// ficheros con brotli/gzip (cacheado en memoria) y cache inmutable en _astro.
+var V2_TYPES = {
+  ".html": "text/html; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
+  ".js": "text/javascript; charset=utf-8",
+  ".json": "application/json; charset=utf-8",
+  ".svg": "image/svg+xml",
+  ".txt": "text/plain; charset=utf-8",
+  ".webp": "image/webp",
+  ".avif": "image/avif",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".ico": "image/x-icon",
+  ".woff2": "font/woff2"
+};
+var V2_COMPRESSIBLE = /\.(?:html|css|js|json|svg|txt)$/;
+var v2Compressed = new Map();
+
+function pickEncoding(req) {
+  var accept = String(req.headers["accept-encoding"] || "");
+  if (/\bbr\b/.test(accept)) return "br";
+  if (/\bgzip\b/.test(accept)) return "gzip";
+  return null;
+}
+
+function compressV2(file, stat, buf, encoding) {
+  var key = file + "|" + encoding + "|" + stat.mtimeMs;
+  var hit = v2Compressed.get(key);
+  if (hit) return hit;
+  var out =
+    encoding === "br"
+      ? zlib.brotliCompressSync(buf, {
+          params: {
+            [zlib.constants.BROTLI_PARAM_QUALITY]: 11,
+            [zlib.constants.BROTLI_PARAM_SIZE_HINT]: buf.length
+          }
+        })
+      : zlib.gzipSync(buf, { level: 9 });
+  v2Compressed.set(key, out);
+  return out;
+}
+
+// Precomprime la v2 al arrancar para que la primera visita no espere a brotli
+function warmV2Cache() {
+  var queue = [];
+  (function walk(dir) {
+    var entries;
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch (e) {
+      return;
+    }
+    entries.forEach(function (d) {
+      var full = path.join(dir, d.name);
+      if (d.isDirectory()) walk(full);
+      else if (V2_COMPRESSIBLE.test(d.name)) queue.push(full);
+    });
+  })(V2_DIR);
+  (function next() {
+    var file = queue.shift();
+    if (!file) return;
+    try {
+      var stat = fs.statSync(file);
+      var buf = fs.readFileSync(file);
+      if (buf.length > 1024) {
+        compressV2(file, stat, buf, "br");
+        compressV2(file, stat, buf, "gzip");
+      }
+    } catch (e) {
+      /* fichero que desaparece: se comprimira al pedirlo */
+    }
+    setImmediate(next);
+  })();
+}
+
+async function serveV2(req, res, pathname) {
+  if (req.method !== "GET" && req.method !== "HEAD") return false;
+
+  var rel;
+  try {
+    rel = decodeURIComponent(pathname.slice("/v2".length)) || "/";
+  } catch (e) {
+    return false;
+  }
+  var file = path.normalize(path.join(V2_DIR, rel));
+  if (file !== V2_DIR && file.indexOf(V2_DIR + path.sep) !== 0) return false;
+
+  var stat;
+  try {
+    stat = await fs.promises.stat(file);
+    if (stat.isDirectory()) {
+      if (!pathname.endsWith("/")) {
+        applySecurityHeaders(res);
+        res.writeHead(301, { Location: pathname + "/" });
+        res.end();
+        return true;
+      }
+      file = path.join(file, "index.html");
+      stat = await fs.promises.stat(file);
+    }
+  } catch (e) {
+    return false;
+  }
+  if (!stat.isFile()) return false;
+
+  var ext = path.extname(file).toLowerCase();
+  var immutable = pathname.indexOf("/v2/_astro/") === 0;
+  var etag = 'W/"' + stat.size.toString(16) + "-" + Math.floor(stat.mtimeMs).toString(16) + '"';
+
+  applySecurityHeaders(res);
+  res.setHeader("X-Robots-Tag", "noindex, nofollow");
+  res.setHeader("Content-Type", V2_TYPES[ext] || "application/octet-stream");
+  res.setHeader(
+    "Cache-Control",
+    immutable ? "public, max-age=31536000, immutable" : "public, max-age=0, must-revalidate"
+  );
+  res.setHeader("ETag", etag);
+
+  if (req.headers["if-none-match"] === etag) {
+    res.writeHead(304);
+    res.end();
+    return true;
+  }
+
+  var body = await fs.promises.readFile(file);
+  if (V2_COMPRESSIBLE.test(file)) {
+    res.setHeader("Vary", "Accept-Encoding");
+    var encoding = pickEncoding(req);
+    if (encoding && body.length > 1024) {
+      body = compressV2(file, stat, body, encoding);
+      res.setHeader("Content-Encoding", encoding);
+    }
+  }
+  res.setHeader("Content-Length", body.length);
+  res.writeHead(200);
+  res.end(req.method === "HEAD" ? undefined : body);
+  return true;
+}
+
 const server = http.createServer(async function (req, res) {
   var pathname = "/";
   try {
@@ -485,12 +630,14 @@ const server = http.createServer(async function (req, res) {
   // v2 en pruebas: fuera de buscadores hasta publicarla
   if (pathname === "/v2" || pathname.indexOf("/v2/") === 0) {
     res.setHeader("X-Robots-Tag", "noindex, nofollow");
+    if (await serveV2(req, res, pathname)) return;
   }
 
   await serveHandler(req, res, SERVE_CONFIG);
 });
 
 server.listen(PORT, HOST, function () {
+  warmV2Cache();
   console.log(
     "CV Palmanord static server listening on http://" + HOST + ":" + PORT
   );

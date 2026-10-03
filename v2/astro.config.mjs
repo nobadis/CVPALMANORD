@@ -9,6 +9,6 @@ export default defineConfig({
   trailingSlash: "always",
   outDir: "../site/v2",
   build: { format: "directory", assets: "_astro" },
-  prefetch: { prefetchAll: true, defaultStrategy: "hover" },
+  prefetch: { prefetchAll: true, defaultStrategy: "viewport" },
   devToolbar: { enabled: false }
 });

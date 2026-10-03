@@ -204,17 +204,41 @@ function counters() {
   pageObservers.push(io);
 }
 
-// Brillo que sigue al cursor en botones y tarjetas
+// Brillo que sigue al cursor en botones y tarjetas (un calculo por frame)
 function pointerGlow() {
-  const handler = (e: PointerEvent) => {
-    const el = (e.target as Element).closest<HTMLElement>(".btn, [data-glow]");
+  if (!window.matchMedia("(hover: hover)").matches) return;
+  let raf = 0;
+  let last: PointerEvent | null = null;
+  const apply = () => {
+    raf = 0;
+    if (!last) return;
+    const el = (last.target as Element).closest?.<HTMLElement>(".btn, [data-glow]");
     if (!el) return;
     const r = el.getBoundingClientRect();
-    el.style.setProperty("--mx", `${e.clientX - r.left}px`);
-    el.style.setProperty("--my", `${e.clientY - r.top}px`);
+    el.style.setProperty("--mx", `${last.clientX - r.left}px`);
+    el.style.setProperty("--my", `${last.clientY - r.top}px`);
+  };
+  const handler = (e: PointerEvent) => {
+    last = e;
+    if (!raf) raf = requestAnimationFrame(apply);
   };
   document.addEventListener("pointermove", handler, { passive: true });
-  pageCleanups.push(() => document.removeEventListener("pointermove", handler));
+  pageCleanups.push(() => {
+    document.removeEventListener("pointermove", handler);
+    cancelAnimationFrame(raf);
+  });
+}
+
+// Pausa las animaciones infinitas de lo que no esta en pantalla
+function pauseOffscreen() {
+  const els = document.querySelectorAll<HTMLElement>("[data-anim]");
+  if (!els.length) return;
+  const io = new IntersectionObserver(
+    (entries) => entries.forEach((e) => e.target.classList.toggle("anim-paused", !e.isIntersecting)),
+    { rootMargin: "100px 0px" }
+  );
+  els.forEach((el) => io.observe(el));
+  pageObservers.push(io);
 }
 
 // Parallax suave para elementos con data-parallax="0.1"
@@ -254,5 +278,6 @@ export function initSite() {
   reveal();
   counters();
   pointerGlow();
+  pauseOffscreen();
   parallax();
 }

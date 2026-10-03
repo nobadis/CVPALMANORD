@@ -10,7 +10,7 @@ interface Props {
 const { eyebrow, title, lead } = Astro.props;
 ---
 
-<section class="page-hero">
+<section class="page-hero" data-anim>
   <div class="ph-bg" aria-hidden="true">
     <span class="blob b1"></span>
     <span class="blob b2"></span>
@@ -45,23 +45,24 @@ const { eyebrow, title, lead } = Astro.props;
   .blob {
     position: absolute;
     border-radius: 50%;
-    filter: blur(70px);
-    opacity: 0.55;
+    background: radial-gradient(closest-side, var(--c), transparent);
+    opacity: 0.75;
     animation: drift 16s ease-in-out infinite alternate;
+    will-change: transform;
   }
   .b1 {
     width: 46vw;
     height: 46vw;
     left: -12vw;
     top: -18vw;
-    background: var(--teal-600);
+    --c: var(--teal-600);
   }
   .b2 {
     width: 34vw;
     height: 34vw;
     right: 6vw;
     bottom: -16vw;
-    background: #0a9b8f;
+    --c: #0a9b8f;
     animation-delay: -6s;
   }
   .ph-mark {
