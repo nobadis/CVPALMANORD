@@ -1,0 +1,213 @@
+---
+import Base from "../layouts/Base.astro";
+import PageHero from "../components/PageHero.astro";
+import CtaBand from "../components/CtaBand.astro";
+import { Image } from "astro:assets";
+import { quotes } from "../data/site";
+import miguel from "../assets/img/miguel.jpg";
+import cristina from "../assets/img/cristina.png";
+import andrea from "../assets/img/andrea.png";
+
+const team = [
+  {
+    name: "Miguel Ángel Sánchez",
+    role: "Veterinario · Fundador",
+    img: miguel,
+    tags: ["Oncología", "Cirugía de tejidos blandos", "Traumatología"],
+    bio: [
+      "Licenciado en 2001 por la Universidad Autónoma de Barcelona, ha desarrollado desde entonces toda su actividad profesional en la medicina y cirugía de pequeños animales.",
+      "En 2006 funda la Clínica Veterinaria Palmanord, donde ejerce con especial interés en oncología, cirugía de tejidos blandos y traumatología.",
+      "Es miembro de AVEPA (Asociación de Veterinarios Especialistas en Pequeños Animales) y del GEVONC (Grupo de Trabajo de Oncología Veterinaria), y ha participado en numerosos cursos y congresos, con especial interés en la oncología."
+    ]
+  },
+  {
+    name: "Cristina Mora Bosch",
+    role: "Auxiliar de veterinaria",
+    img: cristina,
+    tags: ["Trato cercano", "Atención al detalle", "Calma"],
+    bio: [
+      "Destaca por su sensibilidad, su trato cercano y su atención al detalle. Amante del arte y de los animales, cuida cada gesto y cada momento con especial dedicación.",
+      "Observadora y serena, aporta calma tanto a los pacientes como a sus familias, con una forma de trabajar en la que nada se le escapa."
+    ]
+  },
+  {
+    name: "Andrea Maza Sánchez",
+    role: "Auxiliar de veterinaria",
+    img: andrea,
+    tags: ["Dinámica", "Resolutiva", "Positiva"],
+    bio: [
+      "Es una pieza clave en el funcionamiento diario de la clínica. Dinámica, resolutiva y siempre atenta, transmite seguridad y cercanía desde el primer momento.",
+      "Tiene una gran conexión con los animales y una actitud práctica y positiva que ayuda a que todo fluya, incluso en los días más intensos."
+    ]
+  }
+];
+---
+
+<Base title="Equipo" darkHero description="Conoce al equipo de la Clínica Veterinaria Palmanord en Palma: Miguel Ángel Sánchez, Cristina Mora y Andrea Maza.">
+  <PageHero
+    eyebrow="Nuestro maravilloso equipo"
+    title="Las personas detrás de cada cuidado."
+    lead="Contamos con los mejores profesionales para cuidar de la mejor manera a tu mascota. Te presentamos a quien te atenderá."
+  />
+
+  <section class="section">
+    <div class="wrap people">
+      {
+        team.map((m, i) => (
+          <article class:list={["person", { flip: i % 2 === 1 }]}>
+            <div class="person-photo" data-reveal="scale">
+              <Image src={m.img} alt={`Foto de ${m.name}`} widths={[420, 720]} sizes="(max-width: 860px) 92vw, 40vw" />
+            </div>
+            <div class="person-copy">
+              <p class="eyebrow" data-reveal>{m.role}</p>
+              <h2 data-split>{m.name}</h2>
+              <ul class="tags" data-reveal style="--d:2">
+                {m.tags.map((t) => (
+                  <li>{t}</li>
+                ))}
+              </ul>
+              {m.bio.map((p, j) => (
+                <p data-reveal style={`--d:${j + 3}`}>
+                  {p}
+                </p>
+              ))}
+            </div>
+          </article>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="quotes">
+    <div class="wrap quotes-grid">
+      {
+        quotes.map((q, i) => (
+          <figure data-reveal style={`--d:${i}`}>
+            <span class="qmark" aria-hidden="true">“</span>
+            <blockquote>{q.text}</blockquote>
+            <figcaption>— {q.author}</figcaption>
+          </figure>
+        ))
+      }
+    </div>
+  </section>
+
+  <CtaBand />
+</Base>
+
+<style>
+  .people {
+    display: grid;
+    gap: clamp(64px, 9vw, 130px);
+  }
+  .person {
+    display: grid;
+    grid-template-columns: 0.9fr 1.1fr;
+    gap: clamp(32px, 6vw, 90px);
+    align-items: center;
+  }
+  .person.flip .person-photo {
+    order: 2;
+  }
+  .person-photo {
+    position: relative;
+    aspect-ratio: 4 / 4.8;
+    border-radius: var(--radius-l);
+    overflow: hidden;
+    background: var(--teal-50);
+    box-shadow: var(--shadow);
+  }
+  .person-photo::after {
+    content: "";
+    position: absolute;
+    inset: auto -20% -30% auto;
+    width: 60%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--coral);
+    opacity: 0.12;
+  }
+  .person-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+  }
+  .person h2 {
+    font-size: clamp(2.2rem, 1.6rem + 2.6vw, 3.6rem);
+  }
+  .person-copy p:not(.eyebrow) {
+    color: var(--muted);
+    max-width: 60ch;
+  }
+  .tags {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .tags li {
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: var(--teal-50);
+    color: var(--teal-800);
+    font-weight: 700;
+    font-size: 1rem;
+  }
+  .quotes {
+    padding-block: clamp(40px, 6vw, 80px);
+  }
+  .quotes-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  figure {
+    position: relative;
+    margin: 0;
+    padding: clamp(32px, 4vw, 52px);
+    border-radius: var(--radius-l);
+    background: var(--teal);
+    color: #fff;
+    overflow: hidden;
+  }
+  figure:nth-child(2) {
+    background: var(--sand);
+    color: var(--ink);
+  }
+  .qmark {
+    position: absolute;
+    right: 24px;
+    top: -30px;
+    font-family: var(--font-display);
+    font-size: 12rem;
+    line-height: 1;
+    opacity: 0.15;
+  }
+  blockquote {
+    margin: 0 0 18px;
+    font-family: var(--font-display);
+    font-weight: 650;
+    font-size: clamp(1.4rem, 1.2rem + 0.9vw, 2rem);
+    line-height: 1.3;
+    letter-spacing: -0.015em;
+  }
+  figcaption {
+    font-weight: 700;
+    opacity: 0.8;
+  }
+  @media (max-width: 860px) {
+    .person,
+    .quotes-grid {
+      grid-template-columns: 1fr;
+    }
+    .person.flip .person-photo {
+      order: 0;
+    }
+    .person-photo {
+      max-width: 460px;
+    }
+  }
+</style>

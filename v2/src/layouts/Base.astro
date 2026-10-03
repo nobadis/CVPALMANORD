@@ -1,0 +1,547 @@
+---
+import "../styles/global.css";
+import { ClientRouter } from "astro:transitions";
+import { Image } from "astro:assets";
+import Icon from "../components/Icon.astro";
+import { clinic, nav, schedule } from "../data/site";
+import { u } from "../data/url";
+import logoWhite from "../assets/img/logo-white.png";
+import logoTeal from "../assets/img/logo-teal.png";
+
+interface Props {
+  title: string;
+  description?: string;
+  /** Cabecera transparente sobre un hero oscuro */
+  darkHero?: boolean;
+}
+const {
+  title,
+  description = "Clínica veterinaria de barrio en Palma desde 2006. Consulta, cirugía, vacunas, laboratorio propio y urgencias 24h.",
+  darkHero = false
+} = Astro.props;
+
+const path = Astro.url.pathname.replace(/^\/v2/, "") || "/";
+const isActive = (href: string) => (href === "/" ? path === "/" : path.startsWith(href));
+const fullTitle = path === "/" ? `${clinic.name} · Palma` : `${title} · ${clinic.short}`;
+const scheduleJson = JSON.stringify(schedule);
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Version de pruebas: fuera de buscadores hasta que salga a produccion -->
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#006f6f" />
+    <link rel="icon" type="image/png" href={u("/favicon.png")} />
+    <link rel="apple-touch-icon" href={u("/favicon.png")} />
+    <script is:inline>
+      document.documentElement.classList.add("js");
+    </script>
+    <ClientRouter />
+  </head>
+  <body data-dark-hero={darkHero ? "true" : undefined}>
+    <a class="skip" href="#main">Saltar al contenido</a>
+
+    <header class="site-header" data-header transition:persist="header">
+      <div class="wrap header-inner">
+        <a href={u("/")} class="brand" aria-label="Palmanord Clínica Veterinaria, inicio">
+          <Image src={logoWhite} alt="" width={210} class="logo logo-white" loading="eager" />
+          <Image src={logoTeal} alt="" width={210} class="logo logo-teal" loading="eager" />
+        </a>
+
+        <nav class="nav-desktop" aria-label="Principal">
+          <ul>
+            {
+              nav.map((item) => (
+                <li>
+                  <a href={u(item.href)} data-nav={item.href} aria-current={isActive(item.href) ? "page" : undefined}>
+                    {item.label}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
+
+        <div class="header-actions">
+          <a class="open-status" href={u("/contacto/#horario")} data-open-status data-short="1">
+            <span class="dot live"></span><span data-open-text>Horario</span>
+          </a>
+          <a class="btn btn-coral btn-sm header-cta" href={u("/pide-tu-presupuesto/")}>
+            Pide presupuesto
+          </a>
+          <button class="menu-btn" type="button" aria-expanded="false" aria-controls="mobile-menu" data-menu-btn>
+            <span class="sr-only">Abrir menú</span>
+            <span class="burger" aria-hidden="true"><span></span><span></span></span>
+          </button>
+        </div>
+      </div>
+
+      <div class="mobile-menu" id="mobile-menu" data-menu hidden>
+        <nav aria-label="Menú móvil" class="wrap">
+          <ul>
+            {
+              nav.map((item, i) => (
+                <li style={`--i:${i}`}>
+                  <a href={u(item.href)} data-nav={item.href} aria-current={isActive(item.href) ? "page" : undefined}>
+                    {item.label}
+                    <Icon name="arrow" size={28} />
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+          <div class="mobile-menu-cta" style={`--i:${nav.length}`}>
+            <a class="btn btn-coral" href={u("/pide-tu-presupuesto/")}>Pide tu presupuesto</a>
+            <a class="btn btn-ghost-light" href={clinic.phone.href}><Icon name="phone" /> {clinic.phone.label}</a>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main" transition:name="main">
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap footer-top">
+        <div class="footer-brand">
+          <Image src={logoWhite} alt="Palmanord Clínica Veterinaria" width={260} />
+          <p>Tu clínica veterinaria de confianza en Palma desde {clinic.since}.</p>
+        </div>
+        <div class="footer-col">
+          <h2>Visítanos</h2>
+          <p>
+            <a href={clinic.mapsLink} target="_blank" rel="noopener">{clinic.address}<br />{clinic.city}</a>
+          </p>
+        </div>
+        <div class="footer-col">
+          <h2>Llámanos</h2>
+          <p>
+            Clínica: <a href={clinic.phone.href}>{clinic.phone.label}</a><br />
+            Urgencias 24h: <a href={clinic.urgent.href}>{clinic.urgent.label}</a><br />
+            <a href={`mailto:${clinic.email}`}>{clinic.email}</a>
+          </p>
+        </div>
+        <div class="footer-col">
+          <h2>Horario</h2>
+          <p>Lunes a viernes<br /><strong>10:00 – 19:00</strong><br />Sábado y domingo: cerrado</p>
+        </div>
+      </div>
+      <div class="wrap footer-bottom">
+        <span>© {new Date().getFullYear()} Clínica Veterinaria Palmanord</span>
+        <span class="footer-legal">
+          <a href="/legal/aviso-legal-y-privacidad/">Aviso legal y privacidad</a>
+          <a href="/legal/politica-cookies/">Política de cookies</a>
+        </span>
+      </div>
+    </footer>
+
+    <!-- Barra de acciones fija en movil: lo importante a un toque -->
+    <nav class="action-bar" aria-label="Acciones rápidas" transition:persist="action-bar">
+      <a href={clinic.phone.href}><Icon name="phone" /><span>Llamar</span></a>
+      <a href={u("/pide-tu-presupuesto/")} class="ab-main"><Icon name="calendar" /><span>Presupuesto</span></a>
+      <a href={clinic.urgent.href} class="ab-urgent"><Icon name="siren" /><span>Urgencias</span></a>
+    </nav>
+
+    <script is:inline define:vars={{ scheduleJson }}>
+      window.__PALMANORD_SCHEDULE__ = JSON.parse(scheduleJson);
+    </script>
+
+    <script>
+      import { initSite } from "../scripts/site";
+      document.addEventListener("astro:page-load", initSite);
+    </script>
+
+    <style>
+      .skip {
+        position: fixed;
+        left: 16px;
+        top: -80px;
+        z-index: 200;
+        background: var(--ink);
+        color: #fff;
+        padding: 12px 18px;
+        border-radius: 12px;
+        font-weight: 700;
+        transition: top 0.3s;
+      }
+      .skip:focus {
+        top: 16px;
+      }
+
+      /* ---------- Header ---------- */
+      .site-header {
+        position: fixed;
+        inset: 0 0 auto;
+        z-index: 100;
+        height: var(--header-h);
+        display: flex;
+        align-items: center;
+        transition:
+          background-color 0.4s var(--ease),
+          box-shadow 0.4s var(--ease),
+          height 0.4s var(--ease),
+          transform 0.5s var(--ease);
+      }
+      .site-header.is-scrolled {
+        background: rgba(251, 247, 241, 0.86);
+        backdrop-filter: saturate(1.6) blur(16px);
+        -webkit-backdrop-filter: saturate(1.6) blur(16px);
+        box-shadow: 0 1px 0 var(--line);
+        height: 66px;
+      }
+      .site-header.is-hidden {
+        transform: translateY(-100%);
+      }
+      .header-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+      }
+      .brand {
+        position: relative;
+        display: block;
+        width: clamp(150px, 16vw, 200px);
+        flex: none;
+        z-index: 2;
+      }
+      .brand .logo {
+        width: 100%;
+        transition: opacity 0.4s;
+      }
+      .brand .logo-white {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+      }
+      body[data-dark-hero] .site-header:not(.is-scrolled):not(.menu-open) .logo-white,
+      .site-header.menu-open .logo-white {
+        opacity: 1;
+      }
+      body[data-dark-hero] .site-header:not(.is-scrolled):not(.menu-open) .logo-teal,
+      .site-header.menu-open .logo-teal {
+        opacity: 0;
+      }
+      .nav-desktop ul {
+        display: flex;
+        gap: 4px;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .nav-desktop a {
+        position: relative;
+        display: block;
+        padding: 10px 16px;
+        border-radius: 999px;
+        font-family: var(--font-display);
+        font-weight: 650;
+        font-size: 1.05rem;
+        text-decoration: none;
+        color: var(--ink);
+        transition:
+          background-color 0.3s,
+          color 0.3s;
+      }
+      .nav-desktop a:hover {
+        background: var(--teal-50);
+      }
+      .nav-desktop a[aria-current="page"] {
+        background: var(--teal);
+        color: #fff;
+      }
+      body[data-dark-hero] .site-header:not(.is-scrolled) .nav-desktop a {
+        color: #fff;
+      }
+      body[data-dark-hero] .site-header:not(.is-scrolled) .nav-desktop a:hover {
+        background: rgba(255, 255, 255, 0.14);
+      }
+      body[data-dark-hero] .site-header:not(.is-scrolled) .nav-desktop a[aria-current="page"] {
+        background: #fff;
+        color: var(--teal-900);
+      }
+      .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .open-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: var(--white);
+        box-shadow: var(--shadow-s);
+        color: var(--ink);
+        white-space: nowrap;
+        text-decoration: none;
+      }
+      .open-status .dot {
+        color: #9aa4ae;
+      }
+      .open-status[data-state="open"] .dot {
+        color: #15a35a;
+      }
+      .open-status[data-state="closed"] .dot {
+        color: var(--coral);
+      }
+      .btn-sm {
+        white-space: nowrap;
+        min-height: 48px;
+        padding: 10px 20px;
+        font-size: 1rem;
+      }
+      .menu-btn {
+        display: none;
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        border: 0;
+        background: var(--teal);
+        color: #fff;
+        cursor: pointer;
+        place-items: center;
+        position: relative;
+        z-index: 2;
+      }
+      .burger {
+        width: 22px;
+        height: 12px;
+        position: relative;
+        display: block;
+      }
+      .burger span {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 2.5px;
+        border-radius: 3px;
+        background: currentColor;
+        transition: transform 0.5s var(--ease), top 0.5s var(--ease);
+      }
+      .burger span:first-child {
+        top: 0;
+      }
+      .burger span:last-child {
+        top: 9.5px;
+      }
+      .menu-open .burger span:first-child {
+        top: 4.75px;
+        transform: rotate(45deg);
+      }
+      .menu-open .burger span:last-child {
+        top: 4.75px;
+        transform: rotate(-45deg);
+      }
+      .menu-open .menu-btn {
+        background: #fff;
+        color: var(--teal-900);
+      }
+
+      .mobile-menu {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        background: var(--teal-900);
+        color: #fff;
+        padding-top: calc(var(--header-h) + 24px);
+        padding-bottom: 32px;
+        overflow-y: auto;
+        clip-path: circle(0 at calc(100% - 46px) 38px);
+        visibility: hidden;
+        transition:
+          clip-path 0.7s var(--ease),
+          visibility 0s 0.7s;
+      }
+      .mobile-menu.is-open {
+        clip-path: circle(150% at calc(100% - 46px) 38px);
+        visibility: visible;
+        transition:
+          clip-path 0.7s var(--ease),
+          visibility 0s;
+      }
+      .mobile-menu ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .mobile-menu li,
+      .mobile-menu-cta {
+        opacity: 0;
+        transform: translateY(24px);
+        transition:
+          opacity 0.5s var(--ease),
+          transform 0.6s var(--ease);
+      }
+      .mobile-menu.is-open li,
+      .mobile-menu.is-open .mobile-menu-cta {
+        opacity: 1;
+        transform: none;
+        transition-delay: calc(var(--i) * 55ms + 180ms);
+      }
+      .mobile-menu li a {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        font-family: var(--font-display);
+        font-weight: 750;
+        font-size: clamp(2rem, 9vw, 3rem);
+        letter-spacing: -0.03em;
+        text-decoration: none;
+      }
+      .mobile-menu li a[aria-current="page"] {
+        color: var(--mint);
+      }
+      .mobile-menu-cta {
+        display: grid;
+        gap: 12px;
+        margin-top: 32px;
+      }
+
+      /* ---------- Footer ---------- */
+      .site-footer {
+        background: var(--teal-900);
+        color: rgba(255, 255, 255, 0.86);
+        padding-top: clamp(64px, 8vw, 110px);
+        padding-bottom: 32px;
+      }
+      .footer-top {
+        display: grid;
+        grid-template-columns: 1.4fr repeat(3, 1fr);
+        gap: 40px;
+      }
+      .footer-brand img {
+        width: 230px;
+        margin-bottom: 20px;
+      }
+      .footer-brand p {
+        max-width: 30ch;
+      }
+      .footer-col h2 {
+        color: var(--mint);
+        font-size: 1rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 14px;
+      }
+      .site-footer a {
+        color: #fff;
+        text-underline-offset: 4px;
+        text-decoration-color: rgba(255, 255, 255, 0.35);
+      }
+      .site-footer a:hover {
+        text-decoration-color: var(--mint);
+      }
+      .footer-bottom {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 12px 24px;
+        margin-top: 64px;
+        padding-top: 24px;
+        border-top: 1px solid rgba(255, 255, 255, 0.14);
+        font-size: 1rem;
+      }
+      .footer-legal {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 24px;
+      }
+
+      /* ---------- Action bar (movil) ---------- */
+      .action-bar {
+        display: none;
+      }
+
+      @media (max-width: 1080px) {
+        .nav-desktop {
+          display: none;
+        }
+        .menu-btn {
+          display: grid;
+        }
+      }
+      @media (max-width: 860px) {
+        .footer-top {
+          grid-template-columns: 1fr 1fr;
+        }
+        .footer-brand {
+          grid-column: 1 / -1;
+        }
+      }
+      @media (max-width: 720px) {
+        :global(:root) {
+          --header-h: 68px;
+        }
+        .header-cta,
+        .open-status {
+          display: none;
+        }
+        .footer-top {
+          grid-template-columns: 1fr;
+          gap: 28px;
+        }
+        .site-footer {
+          padding-bottom: 110px;
+        }
+        .action-bar {
+          position: fixed;
+          z-index: 90;
+          left: 12px;
+          right: 12px;
+          bottom: max(12px, env(safe-area-inset-bottom));
+          display: grid;
+          grid-template-columns: 1fr 1.25fr 1fr;
+          gap: 6px;
+          padding: 6px;
+          border-radius: 26px;
+          background: rgba(1, 51, 52, 0.92);
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
+          box-shadow: 0 18px 40px -12px rgba(1, 51, 52, 0.55);
+          animation: bar-in 0.8s var(--ease) 0.4s both;
+        }
+        .action-bar a {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 2px;
+          min-height: 60px;
+          border-radius: 20px;
+          color: #fff;
+          text-decoration: none;
+          font-family: var(--font-display);
+          font-weight: 700;
+          font-size: 0.95rem;
+        }
+        .action-bar a:active {
+          transform: scale(0.96);
+        }
+        .action-bar .ab-main {
+          background: #fff;
+          color: var(--teal-900);
+        }
+        .action-bar .ab-urgent {
+          background: var(--coral-ink);
+        }
+      }
+      @keyframes bar-in {
+        from {
+          transform: translateY(140%);
+        }
+      }
+    </style>
+  </body>
+</html>

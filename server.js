@@ -482,6 +482,11 @@ const server = http.createServer(async function (req, res) {
     return;
   }
 
+  // v2 en pruebas: fuera de buscadores hasta publicarla
+  if (pathname === "/v2" || pathname.indexOf("/v2/") === 0) {
+    res.setHeader("X-Robots-Tag", "noindex, nofollow");
+  }
+
   await serveHandler(req, res, SERVE_CONFIG);
 });
 

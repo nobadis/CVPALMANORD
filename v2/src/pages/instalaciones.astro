@@ -1,0 +1,335 @@
+---
+import Base from "../layouts/Base.astro";
+import PageHero from "../components/PageHero.astro";
+import CtaBand from "../components/CtaBand.astro";
+import Icon from "../components/Icon.astro";
+import { Image, getImage } from "astro:assets";
+
+import i2863 from "../assets/img/inst-2863.jpg";
+import i2865 from "../assets/img/inst-2865.jpg";
+import i2866 from "../assets/img/inst-2866.jpg";
+import i2867 from "../assets/img/inst-2867.jpg";
+import i2868 from "../assets/img/inst-2868.jpg";
+import i2869 from "../assets/img/inst-2869.jpg";
+import i2870 from "../assets/img/inst-2870.jpg";
+import i2872 from "../assets/img/inst-2872.jpg";
+import i3466 from "../assets/img/inst-3466.jpg";
+import ix1 from "../assets/img/inst-x1.png";
+import ix2 from "../assets/img/inst-x2.png";
+import quirofano from "../assets/img/quirofano.jpg";
+
+const photos = [
+  { src: ix1, alt: "Recepción con el logo de Palmanord", tag: "Recepción" },
+  { src: i2863, alt: "Entrada y mostrador de la clínica", tag: "Entrada" },
+  { src: i2865, alt: "Sala de rayos X", tag: "Rayos X" },
+  { src: i2866, alt: "Equipos de diagnóstico del laboratorio", tag: "Laboratorio" },
+  { src: i2872, alt: "Quirófano durante una intervención", tag: "Quirófano" },
+  { src: i2867, alt: "Pasillo con el box de consulta 2", tag: "Boxes" },
+  { src: i2869, alt: "Consulta con mesa y armario", tag: "Consulta" },
+  { src: ix2, alt: "Sala de espera con sillas de colores", tag: "Sala de espera" },
+  { src: i3466, alt: "Analizadores del laboratorio propio", tag: "Laboratorio" },
+  { src: i2870, alt: "Tienda y zona de espera junto a la entrada", tag: "Tienda" },
+  { src: i2868, alt: "Pasillo hacia la sala de rayos X", tag: "Pasillo" },
+  { src: quirofano, alt: "Lámpara quirúrgica", tag: "Quirófano" }
+];
+
+// Version grande para el visor a pantalla completa
+const large = await Promise.all(photos.map((p) => getImage({ src: p.src, width: 1400, format: "webp" })));
+
+const features = [
+  { icon: "scalpel", t: "Quirófano equipado" },
+  { icon: "sparkle", t: "Rayos X" },
+  { icon: "flask", t: "Laboratorio propio" },
+  { icon: "bed", t: "Hospitalización" },
+  { icon: "stethoscope", t: "Boxes de consulta" },
+  { icon: "bag", t: "Tienda" }
+];
+---
+
+<Base title="Instalaciones" darkHero description="Clínica reformada íntegramente en 2023: quirófano, rayos X, laboratorio propio, boxes de consulta y hospitalización.">
+  <PageHero
+    eyebrow="Nuestras instalaciones"
+    title="Una clínica renovada de arriba abajo."
+    lead="Reformada íntegramente en 2023, con tecnología avanzada para hacer multitud de pruebas diagnósticas y obtener el resultado de la forma más rápida y segura."
+  >
+    <ul class="feat" data-reveal style="--d:4">
+      {features.map((f) => <li><Icon name={f.icon} size={22} />{f.t}</li>)}
+    </ul>
+  </PageHero>
+
+  <section class="section">
+    <div class="wrap">
+      <ul class="masonry">
+        {
+          photos.map((p, i) => (
+            <li data-reveal="scale" style={`--d:${i % 3}`}>
+              <button type="button" class="ph" data-lightbox={i} data-full={large[i].src} data-alt={p.alt}>
+                <Image src={p.src} alt={p.alt} widths={[400, 700]} sizes="(max-width: 600px) 92vw, (max-width: 1000px) 46vw, 31vw" />
+                <span class="ph-tag">{p.tag}</span>
+                <span class="ph-zoom" aria-hidden="true"><Icon name="plus" /></span>
+              </button>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <dialog class="lb" data-lb aria-label="Visor de fotos">
+    <img alt="" data-lb-img />
+    <p class="lb-cap" data-lb-cap></p>
+    <button type="button" class="lb-btn lb-close" data-lb-close aria-label="Cerrar"><Icon name="close" size={28} /></button>
+    <button type="button" class="lb-btn lb-prev" data-lb-prev aria-label="Foto anterior"><Icon name="arrow" size={28} /></button>
+    <button type="button" class="lb-btn lb-next" data-lb-next aria-label="Foto siguiente"><Icon name="arrow" size={28} /></button>
+  </dialog>
+
+  <CtaBand title="Ven a conocernos" text="Estamos en Carrer dels Ocells, 36 (Palma). Pásate cuando quieras de lunes a viernes, de 10:00 a 19:00." />
+</Base>
+
+<script>
+  document.addEventListener("astro:page-load", () => {
+    const dlg = document.querySelector<HTMLDialogElement>("[data-lb]");
+    if (!dlg) return;
+    const items = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-lightbox]"));
+    const img = dlg.querySelector<HTMLImageElement>("[data-lb-img]")!;
+    const cap = dlg.querySelector<HTMLElement>("[data-lb-cap]")!;
+    let idx = 0;
+    const show = (i: number) => {
+      idx = (i + items.length) % items.length;
+      const b = items[idx];
+      img.classList.remove("in");
+      img.src = b.dataset.full!;
+      img.alt = b.dataset.alt!;
+      cap.textContent = `${b.dataset.alt}  ·  ${idx + 1} / ${items.length}`;
+      img.decode?.().catch(() => {}).finally(() => img.classList.add("in"));
+    };
+    items.forEach((b, i) =>
+      b.addEventListener("click", () => {
+        show(i);
+        dlg.showModal();
+      })
+    );
+    dlg.querySelector("[data-lb-close]")!.addEventListener("click", () => dlg.close());
+    dlg.querySelector("[data-lb-prev]")!.addEventListener("click", () => show(idx - 1));
+    dlg.querySelector("[data-lb-next]")!.addEventListener("click", () => show(idx + 1));
+    dlg.addEventListener("click", (e) => {
+      if (e.target === dlg) dlg.close();
+    });
+    dlg.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") show(idx + 1);
+      if (e.key === "ArrowLeft") show(idx - 1);
+    });
+    // Deslizar en movil
+    let sx = 0;
+    dlg.addEventListener("touchstart", (e) => (sx = e.touches[0].clientX), { passive: true });
+    dlg.addEventListener("touchend", (e) => {
+      const dx = e.changedTouches[0].clientX - sx;
+      if (Math.abs(dx) > 50) show(idx + (dx < 0 ? 1 : -1));
+    });
+  });
+</script>
+
+<style>
+  .feat {
+    list-style: none;
+    padding: 0;
+    margin: 40px 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .feat li {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+    font-weight: 700;
+  }
+  .feat .icon {
+    color: var(--mint);
+  }
+  .masonry {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    grid-auto-flow: dense;
+    gap: 16px;
+  }
+  .masonry li:nth-child(4) {
+    grid-column: span 2;
+  }
+  .ph {
+    aspect-ratio: 3 / 4;
+  }
+  .masonry li:nth-child(4) .ph {
+    aspect-ratio: auto;
+    height: 100%;
+  }
+  @media (max-width: 600px) {
+    .masonry {
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .masonry li:nth-child(4) {
+      grid-column: 1 / -1;
+    }
+    .masonry li:nth-child(4) .ph {
+      aspect-ratio: 4 / 3;
+    }
+    .ph-tag {
+      left: 8px;
+      bottom: 8px;
+      font-size: 0.85rem;
+      padding: 6px 10px;
+    }
+  }
+  .ph {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius);
+    overflow: hidden;
+    cursor: zoom-in;
+    background: var(--sand);
+  }
+  .ph img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition:
+      transform 1.1s var(--ease),
+      filter 0.6s;
+  }
+  .ph:hover img {
+    transform: scale(1.05);
+  }
+  .ph-tag {
+    position: absolute;
+    left: 14px;
+    bottom: 14px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.94);
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1rem;
+  }
+  .ph-zoom {
+    position: absolute;
+    right: 14px;
+    top: 14px;
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: var(--teal);
+    color: #fff;
+    transform: scale(0.6);
+    opacity: 0;
+    transition:
+      transform 0.5s var(--ease-spring),
+      opacity 0.3s;
+  }
+  .ph:hover .ph-zoom,
+  .ph:focus-visible .ph-zoom {
+    transform: none;
+    opacity: 1;
+  }
+
+  .lb {
+    width: 100vw;
+    height: 100dvh;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 24px;
+    border: 0;
+    background: rgba(1, 26, 27, 0.94);
+    color: #fff;
+  }
+  .lb[open] {
+    display: grid;
+    place-items: center;
+    grid-template-rows: 1fr auto;
+    animation: lb-in 0.4s var(--ease);
+  }
+  .lb::backdrop {
+    background: transparent;
+  }
+  .lb img {
+    max-width: min(1100px, 100%);
+    max-height: calc(100dvh - 120px);
+    object-fit: contain;
+    border-radius: 18px;
+    opacity: 0;
+    transform: scale(0.96);
+    transition:
+      opacity 0.4s,
+      transform 0.5s var(--ease);
+  }
+  .lb img.in {
+    opacity: 1;
+    transform: none;
+  }
+  .lb-cap {
+    margin: 14px 0 0;
+    font-weight: 700;
+    text-align: center;
+  }
+  .lb-btn {
+    position: fixed;
+    display: grid;
+    place-items: center;
+    width: 58px;
+    height: 58px;
+    border: 0;
+    border-radius: 50%;
+    background: #fff;
+    color: var(--teal-900);
+    cursor: pointer;
+    transition: transform 0.3s var(--ease);
+  }
+  .lb-btn:hover {
+    transform: scale(1.08);
+  }
+  .lb-close {
+    top: 20px;
+    right: 20px;
+  }
+  .lb-prev,
+  .lb-next {
+    top: 50%;
+    margin-top: -29px;
+  }
+  .lb-prev {
+    left: 20px;
+  }
+  .lb-prev .icon {
+    transform: rotate(180deg);
+  }
+  .lb-next {
+    right: 20px;
+  }
+  @keyframes lb-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @media (max-width: 600px) {
+    .lb-prev,
+    .lb-next {
+      top: auto;
+      bottom: 20px;
+      margin: 0;
+    }
+  }
+</style>

@@ -1,0 +1,334 @@
+---
+import Base from "../layouts/Base.astro";
+import PageHero from "../components/PageHero.astro";
+import Icon from "../components/Icon.astro";
+import { clinic, schedule } from "../data/site";
+import { u } from "../data/url";
+
+const cards = [
+  { icon: "phone", title: "Llámanos", value: clinic.phone.label, href: clinic.phone.href, note: "Lunes a viernes, 10:00 – 19:00" },
+  { icon: "siren", title: "Urgencias 24h", value: clinic.urgent.label, href: clinic.urgent.href, note: "Para clientes, a cualquier hora", urgent: true },
+  { icon: "mail", title: "Escríbenos", value: clinic.email, href: `mailto:${clinic.email}`, note: "Te respondemos lo antes posible" },
+  { icon: "pin", title: "Encuéntranos", value: clinic.address, href: clinic.mapsLink, note: clinic.city, external: true }
+];
+---
+
+<Base title="Contacto" darkHero description="Clínica Veterinaria Palmanord: Carrer dels Ocells, 36, 07011 Palma. Teléfono 971 45 25 92 · Urgencias 24h 655 214 080.">
+  <PageHero eyebrow="Contacto" title="Estamos aquí al lado." lead="Llama, escribe o pásate por la clínica. Y si es una urgencia, llama directamente al 655 214 080." />
+
+  <section class="section contact">
+    <div class="wrap">
+      <ul class="cards">
+        {
+          cards.map((c, i) => (
+            <li data-reveal style={`--d:${i}`}>
+              <a
+                href={c.href}
+                class:list={["card", { urgent: c.urgent }]}
+                data-glow
+                target={c.external ? "_blank" : undefined}
+                rel={c.external ? "noopener" : undefined}
+              >
+                <span class="c-icon">
+                  <Icon name={c.icon} size={28} />
+                </span>
+                <span class="c-title">{c.title}</span>
+                <span class:list={["c-value", { "c-small": c.icon === "mail" }]}>{c.value}</span>
+                <span class="c-note">{c.note}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+
+      <div class="split">
+        <div class="hours" id="horario" data-reveal>
+          <div class="hours-head">
+            <h2>Horario</h2>
+            <span class="chip" data-open-status>
+              <span class="dot live"></span><span data-open-text>…</span>
+            </span>
+          </div>
+          <table>
+            <caption class="sr-only">Horario de la clínica</caption>
+            <tbody>
+              {
+                schedule.map((d) => (
+                  <tr data-dow={d.dow}>
+                    <th scope="row">
+                      {d.day}
+                      <span class="today-badge">Hoy</span>
+                    </th>
+                    <td>{d.open ? `${d.open} – ${d.close}` : "Cerrado"}</td>
+                  </tr>
+                ))
+              }
+            </tbody>
+          </table>
+          <p class="hours-note">
+            <Icon name="siren" size={20} /> Urgencias 24h para clientes: <a href={clinic.urgent.href}>{clinic.urgent.label}</a>
+          </p>
+        </div>
+
+        <div class="map" data-reveal style="--d:1">
+          <iframe
+            src={clinic.mapsEmbed}
+            title="Mapa: Carrer dels Ocells, 36, 07011 Palma"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"></iframe>
+          <a class="btn map-btn" href={clinic.mapsLink} target="_blank" rel="noopener">
+            Cómo llegar <Icon name="external" size={20} />
+          </a>
+        </div>
+      </div>
+
+      <div class="contact-cta" data-reveal>
+        <p>¿Prefieres que te llamemos nosotros?</p>
+        <a class="btn btn-coral" href={u("/pide-tu-presupuesto/")}>Pide tu presupuesto <Icon name="arrow" class="icon-arrow" /></a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .contact {
+    padding-top: clamp(40px, 5vw, 70px);
+  }
+  .cards {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+  .card {
+    position: relative;
+    display: grid;
+    gap: 4px;
+    height: 100%;
+    padding: 28px;
+    border-radius: var(--radius);
+    background: #fff;
+    box-shadow: var(--shadow-s);
+    text-decoration: none;
+    color: var(--ink);
+    overflow: hidden;
+    isolation: isolate;
+    transition:
+      transform 0.5s var(--ease),
+      box-shadow 0.5s var(--ease);
+  }
+  .card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), var(--teal-50), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow);
+  }
+  .card:hover::after {
+    opacity: 1;
+  }
+  .c-icon {
+    display: grid;
+    place-items: center;
+    width: 58px;
+    height: 58px;
+    border-radius: 18px;
+    background: var(--teal-50);
+    color: var(--teal);
+    margin-bottom: 14px;
+  }
+  .c-title {
+    font-weight: 700;
+    color: var(--muted);
+  }
+  .c-value {
+    font-family: var(--font-display);
+    font-weight: 750;
+    font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.6rem);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+  .c-value.c-small {
+    font-size: clamp(1rem, 0.95rem + 0.3vw, 1.15rem);
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+  .c-note {
+    font-size: 1rem;
+    color: var(--muted);
+  }
+  .card.urgent {
+    background: linear-gradient(135deg, var(--coral-ink), #8f2526);
+    color: #fff;
+  }
+  .card.urgent::after {
+    background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, 0.18), transparent 70%);
+  }
+  .card.urgent .c-icon {
+    background: #fff;
+    color: var(--coral-ink);
+  }
+  .card.urgent .c-title,
+  .card.urgent .c-note {
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .split {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr;
+    gap: 20px;
+  }
+  .hours {
+    padding: clamp(28px, 4vw, 44px);
+    border-radius: var(--radius-l);
+    background: #fff;
+    box-shadow: var(--shadow-s);
+    scroll-margin-top: calc(var(--header-h) + 20px);
+  }
+  .hours-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .hours-head h2 {
+    margin: 0;
+    font-size: clamp(1.8rem, 1.4rem + 1.4vw, 2.6rem);
+  }
+  .hours .chip {
+    background: var(--cream);
+    box-shadow: none;
+    font-size: 0.95rem;
+  }
+  .hours .chip .dot {
+    color: #9aa4ae;
+  }
+  .hours .chip[data-state="open"] .dot {
+    color: #15a35a;
+  }
+  .hours .chip[data-state="closed"] .dot {
+    color: var(--coral);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 1.15rem;
+  }
+  th,
+  td {
+    padding: 14px 12px;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+  }
+  td {
+    text-align: right;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  th {
+    font-weight: 600;
+  }
+  tr.is-today th,
+  tr.is-today td {
+    background: var(--teal-50);
+    color: var(--teal-800);
+    font-weight: 800;
+  }
+  tr.is-today th {
+    border-radius: 12px 0 0 12px;
+  }
+  tr.is-today td {
+    border-radius: 0 12px 12px 0;
+  }
+  .today-badge {
+    display: none;
+    margin-left: 8px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: var(--teal);
+    color: #fff;
+    font-size: 0.8rem;
+    vertical-align: middle;
+  }
+  tr.is-today .today-badge {
+    display: inline-block;
+  }
+  .hours-note {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 20px 0 0;
+    color: var(--coral-ink);
+    font-weight: 700;
+  }
+  .hours-note a {
+    color: inherit;
+  }
+  .map {
+    position: relative;
+    min-height: 460px;
+    border-radius: var(--radius-l);
+    overflow: hidden;
+    background: var(--teal-50);
+    box-shadow: var(--shadow-s);
+  }
+  .map iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    filter: saturate(0.85);
+  }
+  .map-btn {
+    position: absolute;
+    left: 20px;
+    bottom: 20px;
+  }
+  .contact-cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 16px 28px;
+    margin-top: clamp(48px, 6vw, 80px);
+    text-align: center;
+  }
+  .contact-cta p {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(1.4rem, 1.2rem + 1vw, 2rem);
+    letter-spacing: -0.02em;
+  }
+  @media (max-width: 1080px) {
+    .cards {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  @media (max-width: 860px) {
+    .split {
+      grid-template-columns: 1fr;
+    }
+    .map {
+      min-height: 360px;
+    }
+  }
+  @media (max-width: 520px) {
+    .cards {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

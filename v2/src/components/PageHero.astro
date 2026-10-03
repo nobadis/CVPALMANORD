@@ -1,0 +1,103 @@
+---
+import { Image } from "astro:assets";
+import mark from "../assets/img/mark-white.png";
+
+interface Props {
+  eyebrow: string;
+  title: string;
+  lead?: string;
+}
+const { eyebrow, title, lead } = Astro.props;
+---
+
+<section class="page-hero">
+  <div class="ph-bg" aria-hidden="true">
+    <span class="blob b1"></span>
+    <span class="blob b2"></span>
+    <Image src={mark} alt="" width={700} class="ph-mark" data-parallax="-0.15" />
+  </div>
+  <div class="wrap ph-inner">
+    <p class="eyebrow ph-eyebrow" data-reveal>{eyebrow}</p>
+    <h1 data-split>{title}</h1>
+    {lead && <p class="ph-lead" data-reveal style="--d:3">{lead}</p>}
+    <slot />
+  </div>
+  <svg class="ph-wave" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0 80V40C240 0 480 0 720 30s480 50 720 10v40Z" fill="var(--cream)"></path>
+  </svg>
+</section>
+
+<style>
+  .page-hero {
+    position: relative;
+    overflow: hidden;
+    background: var(--teal-900);
+    color: #fff;
+    padding-top: calc(var(--header-h) + clamp(48px, 8vw, 110px));
+    padding-bottom: clamp(90px, 11vw, 160px);
+    isolation: isolate;
+  }
+  .ph-bg {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+  }
+  .blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(70px);
+    opacity: 0.55;
+    animation: drift 16s ease-in-out infinite alternate;
+  }
+  .b1 {
+    width: 46vw;
+    height: 46vw;
+    left: -12vw;
+    top: -18vw;
+    background: var(--teal-600);
+  }
+  .b2 {
+    width: 34vw;
+    height: 34vw;
+    right: 6vw;
+    bottom: -16vw;
+    background: #0a9b8f;
+    animation-delay: -6s;
+  }
+  .ph-mark {
+    position: absolute;
+    right: max(-60px, -4vw);
+    top: 18%;
+    width: clamp(260px, 38vw, 560px);
+    opacity: 0.08;
+  }
+  .ph-inner {
+    position: relative;
+  }
+  .ph-eyebrow {
+    color: var(--mint);
+  }
+  h1 {
+    color: #fff;
+    max-width: 16ch;
+  }
+  .ph-lead {
+    font-size: clamp(1.2rem, 1.1rem + 0.5vw, 1.45rem);
+    color: rgba(255, 255, 255, 0.85);
+    max-width: 58ch;
+    margin-top: 8px;
+  }
+  .ph-wave {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    width: 100%;
+    height: clamp(40px, 6vw, 80px);
+  }
+  @keyframes drift {
+    to {
+      transform: translate(6vw, 4vw) scale(1.15);
+    }
+  }
+</style>

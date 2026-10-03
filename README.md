@@ -148,3 +148,16 @@ python3 -m venv .venv
 python -m pip install beautifulsoup4 requests
 python clone_site.py
 ```
+
+## Nueva web (v2, en pruebas)
+
+Rediseno en Astro dentro de `v2/`. Se compila como estatico a `site/v2/`, asi que el mismo `server.js` la sirve en `/v2/` sin tocar la web actual. Lleva `noindex` (meta + cabecera `X-Robots-Tag`) para que no salga en buscadores.
+
+```bash
+cd v2
+npm install
+npm run dev     # desarrollo en http://localhost:4321/v2/
+npm run build   # regenera site/v2/ (commitear el resultado)
+```
+
+El formulario de presupuesto usa el mismo `/api/contact` (origen `v2/...`).

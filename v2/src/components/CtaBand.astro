@@ -1,0 +1,90 @@
+---
+import Icon from "./Icon.astro";
+import { Image } from "astro:assets";
+import { clinic } from "../data/site";
+import { u } from "../data/url";
+import mark from "../assets/img/mark-white.png";
+
+interface Props {
+  title?: string;
+  text?: string;
+}
+const {
+  title = "¿Hablamos de tu mascota?",
+  text = "Cuéntanos qué necesita y te llamamos. Si es urgente, llámanos directamente: atendemos 24h a nuestros clientes."
+} = Astro.props;
+---
+
+<section class="cta-band">
+  <div class="wrap">
+    <div class="cta-card" data-reveal="scale" data-glow>
+      <Image src={mark} alt="" width={520} class="cta-mark" aria-hidden="true" />
+      <div class="cta-copy">
+        <h2>{title}</h2>
+        <p>{text}</p>
+      </div>
+      <div class="cta-actions">
+        <a class="btn btn-light" href={u("/pide-tu-presupuesto/")}>
+          Pide tu presupuesto <Icon name="arrow" class="icon-arrow" />
+        </a>
+        <a class="btn btn-coral" href={clinic.urgent.href}>
+          <Icon name="siren" /> Urgencias {clinic.urgent.label}
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .cta-band {
+    padding-block: clamp(40px, 6vw, 90px) clamp(72px, 9vw, 130px);
+  }
+  .cta-card {
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    align-items: center;
+    gap: 32px 48px;
+    padding: clamp(36px, 6vw, 80px);
+    border-radius: var(--radius-l);
+    background:
+      radial-gradient(600px circle at var(--mx, 80%) var(--my, 20%), rgba(159, 216, 207, 0.22), transparent 55%),
+      linear-gradient(135deg, var(--teal) 0%, var(--teal-800) 100%);
+    color: #fff;
+    isolation: isolate;
+  }
+  .cta-mark {
+    position: absolute;
+    right: -40px;
+    bottom: -60px;
+    width: clamp(260px, 34vw, 480px);
+    opacity: 0.09;
+    z-index: -1;
+    animation: float 9s ease-in-out infinite;
+  }
+  .cta-copy h2 {
+    color: #fff;
+    margin-bottom: 14px;
+  }
+  .cta-copy p {
+    color: rgba(255, 255, 255, 0.86);
+    font-size: 1.25rem;
+    max-width: 46ch;
+    margin: 0;
+  }
+  .cta-actions {
+    display: grid;
+    gap: 14px;
+  }
+  @keyframes float {
+    50% {
+      transform: translateY(-18px) rotate(-3deg);
+    }
+  }
+  @media (max-width: 860px) {
+    .cta-card {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
