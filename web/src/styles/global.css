@@ -60,6 +60,18 @@ html {
   text-size-adjust: 100%;
   scroll-padding-top: calc(var(--header-h) + 16px);
 }
+html.menu-lock,
+html.menu-lock body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+a,
+button {
+  touch-action: manipulation;
+}
 body {
   margin: 0;
   font-family: var(--font-body);

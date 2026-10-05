@@ -1023,6 +1023,20 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
     padding: 8px max(var(--gutter), calc((100vw - var(--maxw)) / 2 + var(--gutter))) 24px;
     scrollbar-width: none;
     cursor: grab;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scroll-padding-inline: var(--gutter);
+  }
+  @media (hover: none) {
+    .strip,
+    .strip .strip-item[data-reveal] {
+      cursor: auto;
+    }
+    .js .strip .strip-item[data-reveal] {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
   }
   .strip::-webkit-scrollbar {
     display: none;
@@ -1172,6 +1186,36 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
       grid-template-columns: 1fr 1fr;
     }
   }
+  /* Equipo: carrusel horizontal con snap en movil */
+  @media (max-width: 720px) {
+    .team-grid {
+      display: flex;
+      gap: 14px;
+      margin-inline: calc(var(--gutter) * -1);
+      padding: 4px var(--gutter) 20px;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x mandatory;
+      scroll-padding-inline: var(--gutter);
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .team-grid::-webkit-scrollbar {
+      display: none;
+    }
+    .team-grid .member,
+    .js .team-grid .member[data-reveal] {
+      flex: none;
+      width: min(74vw, 300px);
+      scroll-snap-align: start;
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+    .member a:hover img {
+      transform: none;
+    }
+  }
   @media (max-width: 600px) {
     .bento {
       grid-template-columns: 1fr;
@@ -1184,9 +1228,6 @@ const gallery = [i2863, i2866, i2870, i2869, ix1, i2872];
     }
     .t-cita {
       min-height: auto;
-    }
-    .team-grid {
-      grid-template-columns: 1fr;
     }
     .stats {
       grid-template-columns: 1fr 1fr;

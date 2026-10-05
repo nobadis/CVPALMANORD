@@ -162,27 +162,28 @@ const jsonLd = JSON.stringify({
         </div>
       </div>
 
-      <div class="mobile-menu" id="mobile-menu" data-menu hidden>
-        <nav aria-label="Menú móvil" class="wrap">
-          <ul>
-            {
-              nav.map((item, i) => (
-                <li style={`--i:${i}`}>
-                  <a href={u(item.href)} data-nav={item.href} aria-current={isActive(item.href) ? "page" : undefined}>
-                    {item.label}
-                    <Icon name="arrow" size={28} />
-                  </a>
-                </li>
-              ))
-            }
-          </ul>
-          <div class="mobile-menu-cta" style={`--i:${nav.length}`}>
-            <a class="btn btn-coral" href={u("/pide-tu-presupuesto/")}>Pedir cita previa</a>
-            <a class="btn btn-ghost-light" href={clinic.phone.href}><Icon name="phone" /> {clinic.phone.label}</a>
-          </div>
-        </nav>
-      </div>
     </header>
+
+    <div class="mobile-menu" id="mobile-menu" data-menu hidden transition:persist="mobile-menu">
+      <nav aria-label="Menú móvil" class="wrap">
+        <ul>
+          {
+            nav.map((item, i) => (
+              <li style={`--i:${i}`}>
+                <a href={u(item.href)} data-nav={item.href} aria-current={isActive(item.href) ? "page" : undefined}>
+                  {item.label}
+                  <Icon name="arrow" size={28} />
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+        <div class="mobile-menu-cta" style={`--i:${nav.length}`}>
+          <a class="btn btn-coral" href={u("/pide-tu-presupuesto/")}>Pedir cita previa</a>
+          <a class="btn btn-ghost-light" href={clinic.phone.href}><Icon name="phone" /> {clinic.phone.label}</a>
+        </div>
+      </nav>
+    </div>
 
     <main id="main" transition:name="main">
       <slot />
@@ -263,17 +264,32 @@ const jsonLd = JSON.stringify({
         display: flex;
         align-items: center;
         transition:
-          background-color 0.4s var(--ease),
-          box-shadow 0.4s var(--ease),
           height 0.4s var(--ease),
           transform 0.5s var(--ease);
       }
       .site-header.is-scrolled {
+        height: 66px;
+      }
+      /* El fondo va en un pseudo-elemento: un backdrop-filter en la cabecera
+         haria de ella el contenedor del menu fixed y lo recortaria */
+      .site-header::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
         background: rgba(251, 247, 241, 0.97);
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
         box-shadow: 0 1px 0 var(--line);
-        height: 66px;
+        opacity: 0;
+        transition: opacity 0.4s var(--ease);
+        pointer-events: none;
+      }
+      .site-header.is-scrolled::before {
+        opacity: 1;
+      }
+      .site-header.menu-open::before {
+        opacity: 0;
       }
       .site-header.is-hidden {
         transform: translateY(-100%);
@@ -437,11 +453,13 @@ const jsonLd = JSON.stringify({
       .mobile-menu {
         position: fixed;
         inset: 0;
-        z-index: 1;
+        z-index: 99;
+        height: 100vh;
+        height: 100dvh;
         background: var(--brand-900);
         color: #fff;
         padding-top: calc(var(--header-h) + 24px);
-        padding-bottom: 32px;
+        padding-bottom: calc(32px + env(safe-area-inset-bottom));
         overflow-y: auto;
         overscroll-behavior: contain;
         clip-path: circle(0 at calc(100% - 46px) 38px);

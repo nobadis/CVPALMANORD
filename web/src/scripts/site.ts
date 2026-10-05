@@ -17,7 +17,7 @@ const getHeader = () => document.querySelector<HTMLElement>("[data-header]");
 function setMenu(open: boolean) {
   const header = getHeader();
   const btn = header?.querySelector<HTMLButtonElement>("[data-menu-btn]");
-  const menu = header?.querySelector<HTMLElement>("[data-menu]");
+  const menu = document.querySelector<HTMLElement>("[data-menu]");
   if (!header || !btn || !menu) return;
   menu.hidden = false;
   menu.classList.toggle("is-open", open);
@@ -28,13 +28,16 @@ function setMenu(open: boolean) {
   const label = btn.querySelector(".sr-only");
   if (label) label.textContent = open ? "Cerrar menú" : "Abrir menú";
 }
-const isMenuOpen = () => !!getHeader()?.querySelector("[data-menu].is-open");
+const isMenuOpen = () => !!document.querySelector("[data-menu].is-open");
 
 function initHeader() {
   // Cada instancia del header se deja en estado cerrado y coherente
   setMenu(false);
   if (headerBound) return;
   headerBound = true;
+
+  // Astro sustituye los atributos de <html> al navegar: sin esto se pierde la clase "js"
+  document.addEventListener("astro:after-swap", () => document.documentElement.classList.add("js"));
 
   lastY = window.scrollY;
   const onScroll = () => {
