@@ -13,6 +13,9 @@ export const clinic = {
     "https://maps.google.com/maps?q=Carrer%20dels%20Ocells%2C%2036%2C%2007011%20Palma%2C%20Illes%20Balears&t=m&z=16&output=embed&iwloc=near"
 };
 
+// Credito discreto del pie de pagina
+export const credit = { name: "COMA", url: "https://comaestudio.com" };
+
 // 0 = domingo. Horario de la clinica (las urgencias son 24h aparte).
 export const schedule = [
   { day: "Lunes", short: "Lun", dow: 1, open: "10:00", close: "19:00" },
