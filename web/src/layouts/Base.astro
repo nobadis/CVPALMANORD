@@ -3,7 +3,8 @@ import "../styles/global.css";
 import { ClientRouter } from "astro:transitions";
 import { Image } from "astro:assets";
 import Icon from "../components/Icon.astro";
-import { clinic, credit, nav, schedule, services } from "../data/site";
+import AgencyCredit from "../components/AgencyCredit.astro";
+import { clinic, nav, schedule, services } from "../data/site";
 import { u } from "../data/url";
 import logoWhite from "../assets/img/logo-white.png";
 import logoBrand from "../assets/img/logo-brand.png";
@@ -221,10 +222,7 @@ const jsonLd = JSON.stringify({
         </span>
       </div>
       <div class="wrap footer-credit">
-        <a href={credit.url} target="_blank" rel="noopener" aria-label="Web hecha por COMA">
-          <span>Hecho por</span><strong>COMA</strong>
-          <svg viewBox="0 0 12 12" width="9" height="9" aria-hidden="true"><path d="M3 9l6-6M4 3h5v5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /></svg>
-        </a>
+        <AgencyCredit />
       </div>
     </footer>
 
@@ -568,39 +566,7 @@ const jsonLd = JSON.stringify({
       .footer-credit {
         display: flex;
         justify-content: center;
-        margin-top: 20px;
-      }
-      .footer-credit a {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 0.8125rem;
-        letter-spacing: 0.02em;
-        color: rgba(255, 255, 255, 0.45);
-        text-decoration: none;
-        padding: 6px 12px;
-        border-radius: 999px;
-        transition: color 0.3s var(--ease), background-color 0.3s var(--ease);
-      }
-      .footer-credit strong {
-        font-family: var(--font-display);
-        font-weight: 800;
-        letter-spacing: 0.16em;
-      }
-      .footer-credit svg {
-        opacity: 0;
-        transform: translate(-3px, 3px);
-        transition: opacity 0.3s var(--ease), transform 0.3s var(--ease);
-      }
-      .footer-credit a:hover,
-      .footer-credit a:focus-visible {
-        color: #fff;
-        background: rgba(255, 255, 255, 0.08);
-      }
-      .footer-credit a:hover svg,
-      .footer-credit a:focus-visible svg {
-        opacity: 1;
-        transform: none;
+        margin-top: 8px;
       }
       .footer-legal {
         display: flex;

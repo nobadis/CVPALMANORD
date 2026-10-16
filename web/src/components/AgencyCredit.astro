@@ -1,0 +1,88 @@
+---
+// Credito discreto de la agencia (mismo patron que saborpatricio.com)
+---
+<a
+  class="cc"
+  href="https://comunicacionenmallorca.com/?utm_source=cvpalmanord&utm_medium=referral&utm_campaign=credito-web"
+  target="_blank"
+  rel="noopener"
+  aria-label="Web hecha por COMA, Comunicación en Mallorca"
+>
+  <span class="cc__by" aria-hidden="true">Web hecha por</span>
+  <svg class="cc__logo" viewBox="0 -180 4304 866" aria-hidden="true">
+    <path fill="currentColor" d="M488 698Q347 698 252 658Q157 617 110 538Q62 458 62 342Q62 172 171 79Q280 -13 487 -13Q604 -13 693 21Q782 55 832 118Q882 181 882 268H713Q713 222 685 189Q656 157 605 140Q553 123 484 123Q408 123 353 148Q298 173 269 219Q240 265 240 329V354Q240 418 269 465Q298 511 353 536Q408 561 484 561Q557 561 609 545Q661 529 690 497Q718 465 718 419H883Q883 504 834 567Q785 630 697 664Q608 698 488 698Z M1432 698Q1295 698 1194 656Q1094 614 1040 535Q986 455 986 342Q986 229 1040 149Q1094 70 1194 28Q1295 -13 1432 -13Q1570 -13 1670 28Q1770 70 1824 149Q1878 229 1878 342Q1878 455 1824 535Q1770 614 1670 656Q1570 698 1432 698ZM1432 561Q1491 561 1540 548Q1589 534 1625 508Q1661 482 1680 442Q1700 403 1700 353V330Q1700 280 1680 241Q1661 202 1625 176Q1589 150 1540 137Q1491 123 1432 123Q1373 123 1324 137Q1275 150 1239 176Q1203 202 1184 241Q1164 280 1164 330V353Q1164 403 1184 442Q1203 482 1239 508Q1275 534 1324 548Q1373 561 1432 561Z M2012 686V-1H2281L2422 330Q2430 347 2440 375Q2451 403 2463 434Q2474 465 2483 489H2490Q2498 467 2509 438Q2520 409 2531 380Q2542 351 2550 331L2692 -1H2954V686H2782V292Q2782 273 2782 250Q2783 227 2784 205Q2785 183 2785 166H2777Q2772 183 2764 206Q2755 229 2747 252Q2739 275 2732 292L2562 686H2398L2228 292Q2218 269 2209 246Q2200 222 2194 201Q2187 180 2182 166H2174Q2175 179 2175 200Q2176 221 2176 245Q2177 269 2177 292V686Z M3047 686 3388 -1H3582L3923 686H3735L3675 562H3284L3224 686ZM3347 429H3612L3539 272Q3535 262 3526 242Q3517 222 3509 201Q3500 180 3493 163Q3486 146 3484 142H3476Q3468 162 3457 187Q3446 212 3437 235Q3427 259 3420 273Z"></path>
+    <g transform="translate(3984.0 -180.0) scale(16.000)">
+      <path class="cc__comma" d="M6 0h14v21c0 10-5 16.5-15 19l-2-5.5c5-1.8 7.5-5.2 8-9.5H6z"></path>
+    </g>
+  </svg>
+  <span class="cc__hint" aria-hidden="true">¿Quieres una así? <span class="cc__arrow">→</span></span>
+</a>
+
+<style>
+  .cc {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: rgba(255, 255, 255, 0.5);
+    transition: color 0.3s;
+  }
+  .cc__logo {
+    width: auto;
+    height: 13px;
+    overflow: visible;
+  }
+  .cc__comma {
+    fill: #e1112d;
+    transform-box: fill-box;
+    transform-origin: 50% 0;
+    transition: transform 0.5s var(--ease-spring);
+  }
+  .cc__hint {
+    display: inline-flex;
+    gap: 4px;
+    overflow: hidden;
+    white-space: nowrap;
+    max-width: 0;
+    opacity: 0;
+    color: var(--brand-light);
+    transition: max-width 0.5s var(--ease), opacity 0.3s;
+  }
+  .cc__arrow {
+    display: inline-block;
+    transition: transform 0.3s var(--ease-spring);
+  }
+  .cc:hover,
+  .cc:focus-visible {
+    color: #fff;
+  }
+  .cc:hover .cc__comma,
+  .cc:focus-visible .cc__comma {
+    transform: rotate(-22deg) scale(1.15);
+  }
+  .cc:hover .cc__hint,
+  .cc:focus-visible .cc__hint {
+    opacity: 1;
+    max-width: 12em;
+  }
+  .cc:hover .cc__arrow {
+    transform: translateX(3px);
+  }
+  /* En tactil no hay hover: la invitacion queda visible */
+  @media (hover: none) {
+    .cc__hint {
+      opacity: 0.85;
+      max-width: 12em;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cc__comma,
+    .cc__hint,
+    .cc__arrow {
+      transition: none;
+    }
+  }
+</style>
